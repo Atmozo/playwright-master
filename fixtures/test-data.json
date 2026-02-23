@@ -1,0 +1,5 @@
+	
+dependencies	
+3x	"^0.0.0"
+selenium	"^2.20.0"
+selenium-side-runner	"^4.0.13"
