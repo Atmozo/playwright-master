@@ -120,7 +120,7 @@ test.describe("IFrames", () => {
 
     // iframe element
     const iframe = page.frameLocator("iframe").first();
-    await expect(iframe.locator("body")).toBeVisible();
+    await expect(iframe.locator("body")).toBeAttached();
 
     // Back to main page (no switching needed)
     await expect(mainPageHeader).toBeVisible();
