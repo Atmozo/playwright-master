@@ -16,6 +16,10 @@
 
 import { defineConfig, devices } from "@playwright/test";
 
+import dotenv from "dotenv";
+
+dotenv.config();
+
 export default defineConfig({
   // ── WHERE ARE YOUR TESTS? ─────────────────────────────────
   // Playwright scans this folder recursively for *.spec.ts
@@ -105,11 +109,11 @@ export default defineConfig({
     //{
     // name: "firefox",
     // use: { ...devices["Desktop Firefox"] },
-    // },
-    // {
+    //},
+    //{
     //  name: "webkit", // Safari engine
     //  use: { ...devices["Desktop Safari"] },
-    // },
+    //},
 
     // Mobile viewports:
     // {
