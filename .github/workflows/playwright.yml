@@ -174,46 +174,6 @@ jobs:
               </div>
             </body>
             </html>
-          attachments: playwright-report-${{ github.run_number }}.zip
-
-      # ────────────────────────────────────────────────────────
-      # Slack Notification (failures only)
-      # ────────────────────────────────────────────────────────
-      - name: 💬 Slack notification on failure
-        if: failure()
-        uses: slackapi/slack-github-action@v1.26.0
-        with:
-          payload: |
-            {
-              "text": "❌ Playwright Tests Failed",
-              "blocks": [
-                {
-                  "type": "header",
-                  "text": { "type": "plain_text", "text": "❌ Playwright Tests Failed", "emoji": true }
-                },
-                {
-                  "type": "section",
-                  "fields": [
-                    { "type": "mrkdwn", "text": "*Repo:*\n${{ github.repository }}" },
-                    { "type": "mrkdwn", "text": "*Branch:*\n${{ github.ref_name }}" },
-                    { "type": "mrkdwn", "text": "*Trigger:*\n${{ github.event_name }}" },
-                    { "type": "mrkdwn", "text": "*Run:*\n#${{ github.run_number }}" }
-                  ]
-                },
-                {
-                  "type": "actions",
-                  "elements": [
-                    {
-                      "type": "button",
-                      "text": { "type": "plain_text", "text": "View Results" },
-                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
       # ────────────────────────────────────────────────────────
       # Fail the job if tests failed (after notifications sent)
@@ -243,5 +203,4 @@ jobs:
 #  GMAIL_APP_PASSWORD      → 16-char app password from
 #                            https://myaccount.google.com/apppasswords
 #  NOTIFICATION_EMAIL      → recipient email address
-#
-## ============================================================
+
