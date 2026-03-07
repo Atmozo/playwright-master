@@ -1,27 +1,247 @@
+# ============================================================
+# 🎭 PLAYWRIGHT TESTS - PRO WORKFLOW
+# ============================================================
+# ✅ Runs on push/PR to main & master
+# ✅ Runs every night at 2 AM UTC
+# ✅ Manual trigger with environment selection
+# ✅ Injects all .env secrets securely
+# ✅ Sends HTML email report on completion
+# ✅ Sends Slack notification on failure
+# ✅ Uploads artifacts for 30 days
+# ============================================================
+
 name: Playwright Tests
+
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
+
+  schedule:
+    - cron: "0 2 * * *" # Every night at 2 AM UTC
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to test"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  NODE_VERSION: "lts/*"
+  REPORTS_DIR: "playwright-report"
+
 jobs:
   test:
-    timeout-minutes: 60
+    name: Playwright Test Execution
     runs-on: ubuntu-latest
+    timeout-minutes: 60
+
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: lts/*
-    - name: Install dependencies
-      run: npm ci
-    - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
-    - name: Run Playwright tests
-      run: npx playwright test
-    - uses: actions/upload-artifact@v4
-      if: ${{ !cancelled() }}
-      with:
-        name: playwright-report
-        path: playwright-report/
-        retention-days: 30
+      # ────────────────────────────────────────────────────────
+      # Setup
+      # ────────────────────────────────────────────────────────
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🎭 Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      # ────────────────────────────────────────────────────────
+      # Run Tests
+      # ────────────────────────────────────────────────────────
+      - name: 🧪 Run Playwright tests
+        id: tests
+        continue-on-error: true
+        run: npx playwright test --workers=4
+        env:
+          OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+          WEATHER_BASE_URL: ${{ secrets.WEATHER_BASE_URL }}
+          REQRES_BASE_URL: ${{ secrets.REQRES_BASE_URL }}
+          DOGS_BASE_URL: ${{ secrets.DOGS_BASE_URL }}
+          TEST_ENV: ${{ github.event.inputs.environment || 'staging' }}
+          CI: true
+
+      # ────────────────────────────────────────────────────────
+      # Summary
+      # ────────────────────────────────────────────────────────
+      - name: 📊 Generate test summary
+        if: always()
+        run: |
+          echo "## 🎭 Playwright Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Date:** $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event.inputs.environment || 'staging' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ steps.tests.outcome }}" >> $GITHUB_STEP_SUMMARY
+
+      # ────────────────────────────────────────────────────────
+      # Upload Artifacts
+      # ────────────────────────────────────────────────────────
+      - name: 📤 Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_number }}
+          path: |
+            test-results/
+            ${{ env.REPORTS_DIR }}/
+          retention-days: 30
+
+      - name: 📹 Upload failure videos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-videos-${{ github.run_number }}
+          path: test-results/**/video.webm
+          retention-days: 7
+
+      # ────────────────────────────────────────────────────────
+      # Zip Report for Email
+      # ────────────────────────────────────────────────────────
+      - name: 📦 Zip report for email
+        if: always()
+        run: |
+          cd ${{ env.REPORTS_DIR }}
+          zip -r ../playwright-report-${{ github.run_number }}.zip .
+
+      # ────────────────────────────────────────────────────────
+      # Email Notification
+      # ────────────────────────────────────────────────────────
+      - name: 📧 Send email notification
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.GMAIL_USERNAME }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: |
+            ${{ steps.tests.outcome == 'success' && '✅' || '❌' }} Playwright Tests - Run #${{ github.run_number }} - ${{ steps.tests.outcome }}
+          to: ${{ secrets.NOTIFICATION_EMAIL }}
+          from: Playwright Tests
+          html_body: |
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: ${{ steps.tests.outcome == 'success' && '#4CAF50' || '#f44336' }}; color: white; padding: 20px; border-radius: 5px; }
+                .content { background: #f9f9f9; padding: 20px; margin-top: 20px; border-radius: 5px; }
+                .footer { margin-top: 20px; font-size: 12px; color: #666; }
+                .button { background: #2196F3; color: white; padding: 10px 20px; text-decoration: none; border-radius: 3px; display: inline-block; margin-top: 10px; margin-right: 8px; }
+                .status { font-size: 24px; font-weight: bold; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h2>🎭 Playwright Test Results</h2>
+                  <p class="status">${{ steps.tests.outcome == 'success' && '✅ ALL TESTS PASSED' || '❌ TESTS FAILED' }}</p>
+                </div>
+                <div class="content">
+                  <h3>Run Details</h3>
+                  <ul>
+                    <li><strong>Run Number:</strong> ${{ github.run_number }}</li>
+                    <li><strong>Trigger:</strong> ${{ github.event_name }}</li>
+                    <li><strong>Environment:</strong> ${{ github.event.inputs.environment || 'staging' }}</li>
+                    <li><strong>Branch:</strong> ${{ github.ref_name }}</li>
+                    <li><strong>Commit:</strong> ${{ github.sha }}</li>
+                  </ul>
+                  <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" class="button">View Full Report</a>
+                  <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" class="button">Download Artifacts</a>
+                </div>
+                <div class="footer">
+                  <p>Automated message from GitHub Actions · ${{ github.repository }}</p>
+                </div>
+              </div>
+            </body>
+            </html>
+          attachments: playwright-report-${{ github.run_number }}.zip
+
+      # ────────────────────────────────────────────────────────
+      # Slack Notification (failures only)
+      # ────────────────────────────────────────────────────────
+      - name: 💬 Slack notification on failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "❌ Playwright Tests Failed",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": { "type": "plain_text", "text": "❌ Playwright Tests Failed", "emoji": true }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    { "type": "mrkdwn", "text": "*Repo:*\n${{ github.repository }}" },
+                    { "type": "mrkdwn", "text": "*Branch:*\n${{ github.ref_name }}" },
+                    { "type": "mrkdwn", "text": "*Trigger:*\n${{ github.event_name }}" },
+                    { "type": "mrkdwn", "text": "*Run:*\n#${{ github.run_number }}" }
+                  ]
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": { "type": "plain_text", "text": "View Results" },
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      # ────────────────────────────────────────────────────────
+      # Fail the job if tests failed (after notifications sent)
+      # ────────────────────────────────────────────────────────
+      - name: ✅ Assert test outcome
+        if: always()
+        run: |
+          if [ "${{ steps.tests.outcome }}" != "success" ]; then
+            echo "Tests failed — marking job as failed."
+            exit 1
+          fi
+
+# ============================================================
+# 📝 SECRETS NEEDED (Settings → Secrets and variables → Actions)
+# ============================================================
+#
+#  FROM YOUR .env:
+#  ─────────────────────────────────────────────────
+#  OPENWEATHER_API_KEY     → your api key
+#  WEATHER_BASE_URL        → https://api.openweathermap.org
+#  REQRES_BASE_URL         → https://reqres.in
+#  DOGS_BASE_URL           → https://dog.ceo/api
+#
+#  FOR EMAIL:
+#  ─────────────────────────────────────────────────
+#  GMAIL_USERNAME          → your Gmail address
+#  GMAIL_APP_PASSWORD      → 16-char app password from
+#                            https://myaccount.google.com/apppasswords
+#  NOTIFICATION_EMAIL      → recipient email address
+#
+## ============================================================
