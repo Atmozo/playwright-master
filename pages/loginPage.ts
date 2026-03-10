@@ -88,7 +88,7 @@ export class LoginPage {
   // Some teams put assertions in the page object as helpers.
   // Keeps the test file slim and the intent crystal-clear.
   //
-  // 📖 PLAYWRIGHT DOC on assertions:
+  //  PLAYWRIGHT DOC on assertions:
   //   https://playwright.dev/docs/test-assertions
 
   async expectSuccessMessage(text: string) {

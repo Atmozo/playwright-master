@@ -1,7 +1,7 @@
 import { Page, Locator, expect } from "@playwright/test";
 
 // ============================================================
-// 📖 LECTURE: Register Page Object
+//  LECTURE: Register Page Object
 // ============================================================
 // Same POM pattern as LoginPage — notice how identical the
 // structure is. This is the POWER of POM: consistent,
@@ -13,7 +13,7 @@ import { Page, Locator, expect } from "@playwright/test";
 // We test NEGATIVE paths — what happens when the user sends
 // bad data. This is called "negative testing."
 //
-// 📖 PLAYWRIGHT DOC - Input filling:
+//  PLAYWRIGHT DOC - Input filling:
 //   https://playwright.dev/docs/input
 // ============================================================
 
@@ -59,7 +59,7 @@ export class RegisterPage {
   // Checks browser HTML5 native validation state
   // (the red border when required field is empty)
   //
-  // 📖 PLAYWRIGHT DOC - toHaveAttribute:
+  //  PLAYWRIGHT DOC - toHaveAttribute:
   //   https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-attribute
   async expectFieldRequired(locator: Locator) {
     await expect(locator).toHaveAttribute("required");

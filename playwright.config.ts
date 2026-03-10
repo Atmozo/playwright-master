@@ -1,5 +1,5 @@
 // ============================================================
-// 📖 LECTURE: playwright.config.ts — The Control Centre
+//  LECTURE: playwright.config.ts — The Control Centre
 // ============================================================
 // This file controls EVERYTHING about how your tests run:
 //  - Which browser(s)
@@ -10,7 +10,7 @@
 //  - Reports
 //  - Screenshots / Videos / Trace
 //
-// 📖 PLAYWRIGHT DOC:
+//  PLAYWRIGHT DOC:
 //   https://playwright.dev/docs/test-configuration
 // ============================================================
 
@@ -31,7 +31,7 @@ export default defineConfig({
   //
   // START with false while learning (easier to debug)
   // Switch to true for faster CI runs
-  // 📖 https://playwright.dev/docs/test-parallel
+  //  https://playwright.dev/docs/test-parallel
   fullyParallel: false,
 
   // ── RETRIES ───────────────────────────────────────────────
@@ -39,7 +39,7 @@ export default defineConfig({
   // Locally: no retries (so you see failures immediately)
   //
   // CAUTION: Retries hide flaky tests. Fix the root cause!
-  // 📖 https://playwright.dev/docs/test-retries
+  //  https://playwright.dev/docs/test-retries
   retries: process.env.CI ? 2 : 0,
 
   // ── WORKERS ───────────────────────────────────────────────
@@ -51,7 +51,7 @@ export default defineConfig({
   // 'html' → generates a beautiful HTML report in playwright-report/
   // 'list' → prints test results in the terminal as they run
   //
-  // 📖 https://playwright.dev/docs/test-reporters
+  //  https://playwright.dev/docs/test-reporters
   reporter: [
     ["html", { open: "never" }], // Don't auto-open after each run
     ["list"], // Show progress in terminal
@@ -62,21 +62,21 @@ export default defineConfig({
   use: {
     // BASE URL: All page.goto('/login') calls prepend this.
     // Change this one value for staging vs production testing.
-    // 📖 https://playwright.dev/docs/api/class-page#page-goto
+    //  https://playwright.dev/docs/api/class-page#page-goto
     baseURL: "https://practice.expandtesting.com",
 
     // TRACE: Records every action for debugging failed tests.
     // 'on-first-retry' = only record when a test fails and retries.
     // Open trace: npx playwright show-trace trace.zip
-    // 📖 https://playwright.dev/docs/trace-viewer
+    //  https://playwright.dev/docs/trace-viewer
     trace: "on-first-retry",
 
     // SCREENSHOT: Take a screenshot when a test fails.
-    // 📖 https://playwright.dev/docs/screenshots
+    //  https://playwright.dev/docs/screenshots
     screenshot: "only-on-failure",
 
     // VIDEO: Record video of test execution on failure.
-    // 📖 https://playwright.dev/docs/videos
+    //  https://playwright.dev/docs/videos
     video: "on-first-retry",
 
     // ACTION TIMEOUT: How long to wait for a single action
@@ -99,7 +99,7 @@ export default defineConfig({
   // For learning: use only chromium (fast).
   // For production CI: run all three.
   //
-  // 📖 https://playwright.dev/docs/test-projects
+  //  https://playwright.dev/docs/test-projects
   projects: [
     {
       name: "chromium",
@@ -132,7 +132,7 @@ export default defineConfig({
 });
 
 // ══════════════════════════════════════════════════════════════
-// 🏃 HOW TO RUN YOUR TESTS
+//  HOW TO RUN YOUR TESTS
 // ══════════════════════════════════════════════════════════════
 //
 // Run ALL tests:

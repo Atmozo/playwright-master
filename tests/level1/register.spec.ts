@@ -1,19 +1,19 @@
 // ============================================================
-// 🎓 LEVEL 1 — Challenge 1+2: Register & Form Validation
+//  LEVEL 1 — Challenge 1+2: Register & Form Validation
 // Site: https://practice.expandtesting.com/register
 // ============================================================
 //
 // KEYS IN THIS FILE:
-//  ✅ Form validation testing (positive + negative)
-//  ✅ Password confirmation mismatch scenario
-//  ✅ Boundary value testing (empty, short, long)
-//  ✅ toHaveAttribute → checking required / disabled states
-//  ✅ inputValue → reading what's currently in a field
-//  ✅ clear() → clearing a field
-//  ✅ press() → keyboard interactions
-//  ✅ screenshot on failure (trace viewer)
+//   Form validation testing (positive + negative)
+//   Password confirmation mismatch scenario
+//   Boundary value testing (empty, short, long)
+//   toHaveAttribute → checking required / disabled states
+//   inputValue → reading what's currently in a field
+//   clear() → clearing a field
+//   press() → keyboard interactions
+//   screenshot on failure (trace viewer)
 //
-// 📖 PLAYWRIGHT DOCS TO READ:
+//  PLAYWRIGHT DOCS TO READ:
 //  Input actions: https://playwright.dev/docs/input
 //  Keyboard:      https://playwright.dev/docs/api/class-keyboard
 //  Attributes:    https://playwright.dev/docs/api/class-locatorassertions
@@ -33,7 +33,7 @@ test.describe("Register Flow", () => {
   });
 
   // ══════════════════════════════════════════════════════════
-  // ✅ POSITIVE TESTS
+  //  POSITIVE TESTS
   // ══════════════════════════════════════════════════════════
 
   test("TC-R01 | should display register page correctly", async () => {
@@ -60,7 +60,7 @@ test.describe("Register Flow", () => {
   });
 
   // ══════════════════════════════════════════════════════════
-  // ❌ NEGATIVE TESTS — Form Validation
+  //  NEGATIVE TESTS — Form Validation
   // ══════════════════════════════════════════════════════════
   // CONCEPT: "Form Validation Testing" means verifying:
   //   1. Required fields can't be skipped
@@ -107,7 +107,7 @@ test.describe("Register Flow", () => {
 });
 
 // ============================================================
-// 🎓 BONUS: Form Validation — Input Interaction Deep Dive
+//  BONUS: Form Validation — Input Interaction Deep Dive
 // ============================================================
 test.describe("Form Validation — Input Interactions", () => {
   test("TC-FV01 | .fill() vs .type() behavior", async ({ page }) => {
@@ -116,17 +116,17 @@ test.describe("Form Validation — Input Interactions", () => {
     const input = page.getByLabel("Username");
 
     // .fill() → clears field then pastes the whole value instantly
-    // ✅ PREFERRED: Fast, reliable, handles special chars
+    //  PREFERRED: Fast, reliable, handles special chars
     await input.fill("practice");
 
     // Verify the value was set
     // .inputValue() → returns current value of an input
-    // 📖 https://playwright.dev/docs/api/class-locator#locator-input-value
+    //  https://playwright.dev/docs/api/class-locator#locator-input-value
     const value = await input.inputValue();
     expect(value).toBe("practice");
 
     // .clear() → empties the field
-    // 📖 https://playwright.dev/docs/api/class-locator#locator-clear
+    //  https://playwright.dev/docs/api/class-locator#locator-clear
     await input.clear();
     const afterClear = await input.inputValue();
     expect(afterClear).toBe("");
@@ -134,7 +134,7 @@ test.describe("Form Validation — Input Interactions", () => {
     // .pressSequentially() → types char by char (simulates real user)
     // USE WHEN: the app listens to keydown/keyup events (autocomplete)
     // AVOID: It's slower. Only use when fill() doesn't trigger events.
-    // 📖 https://playwright.dev/docs/api/class-locator#locator-press-sequentially
+    //  https://playwright.dev/docs/api/class-locator#locator-press-sequentially
     await input.pressSequentially("practice", { delay: 50 });
     const afterType = await input.inputValue();
     expect(afterType).toBe("practice");
@@ -153,7 +153,7 @@ test.describe("Form Validation — Input Interactions", () => {
 
     // .press() → sends a single key event
     // 'Tab' moves focus to next focusable element
-    // 📖 https://playwright.dev/docs/api/class-locator#locator-press
+    //  https://playwright.dev/docs/api/class-locator#locator-press
     await username.press("Tab");
 
     // Now focus should be on password field
@@ -175,14 +175,14 @@ test.describe("Form Validation — Input Interactions", () => {
     const loginButton = page.getByRole("button", { name: "Login" });
 
     // toBeEnabled → button is clickable (not disabled attr)
-    // 📖 https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-be-enabled
+    //  https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-be-enabled
     await expect(loginButton).toBeEnabled();
 
     // toBeVisible → element is in the DOM and not hidden
-    // 📖 https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-be-visible
+    //  https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-be-visible
     await expect(loginButton).toBeVisible();
 
-    // ✅ FIX: Scroll the button into view before asserting toBeInViewport.
+    //  FIX: Scroll the button into view before asserting toBeInViewport.
     // The page may render with ads/banners pushing content below the fold,
     // so the button exists in the DOM but isn't on screen yet.
     // scrollIntoViewIfNeeded() ensures it's physically visible before we check.
@@ -207,7 +207,7 @@ test.describe("Form Validation — Input Interactions", () => {
     // USE CASE: Checking multiple things on a page at once,
     //           so you see ALL broken things in one run.
     //
-    // 📖 https://playwright.dev/docs/test-assertions#soft-assertions
+    //  https://playwright.dev/docs/test-assertions#soft-assertions
     await page.goto("/login");
 
     // These all run even if one fails
@@ -225,7 +225,7 @@ test.describe("Form Validation — Input Interactions", () => {
     // CONCEPT: Some content loads after a delay (API calls, animations).
     // expect.poll() retries your check until it passes or times out.
     //
-    // 📖 https://playwright.dev/docs/test-assertions#polling
+    //  https://playwright.dev/docs/test-assertions#polling
     await page.goto("/login");
     await page.getByLabel("Username").fill("practice");
     await page.getByLabel("Password").fill("SuperSecretPassword!");
@@ -248,7 +248,7 @@ test.describe("Form Validation — Input Interactions", () => {
 });
 
 // ============================================================
-// 🎓 FULL AUTH LIFECYCLE TEST
+//  FULL AUTH LIFECYCLE TEST
 // ============================================================
 // This is the "crown jewel" test — register → login → logout.
 // It tests three features working together.

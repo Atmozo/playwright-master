@@ -1,19 +1,19 @@
 // ============================================================
-// 🎓 LEVEL 1 — Challenge 3: File Upload & Download
+//  LEVEL 1 — Challenge 3: File Upload & Download
 // Sites: /upload and /download
 // ============================================================
 //
 // LEARN:
-//  ✅ setInputFiles() → upload files programmatically
-//  ✅ waitForEvent('download') → intercept downloads
-//  ✅ download.path() → get downloaded file location
-//  ✅ download.saveAs() → save to custom location
-//  ✅ Reading file content after download
-//  ✅ Testing multiple file upload
-//  ✅ Verifying file metadata
-//  ✅ page.route() → block unwanted network requests
+//   setInputFiles() → upload files programmatically
+//   waitForEvent('download') → intercept downloads
+//   download.path() → get downloaded file location
+//   download.saveAs() → save to custom location
+//   Reading file content after download
+//   Testing multiple file upload
+//   Verifying file metadata
+//   page.route() → block unwanted network requests
 //
-// 📖 PLAYWRIGHT DOCS TO READ:
+//  PLAYWRIGHT DOCS TO READ:
 //  File upload:    https://playwright.dev/docs/input#upload-files
 //  File download:  https://playwright.dev/docs/downloads
 //  FileChooser:    https://playwright.dev/docs/api/class-filechooser
@@ -28,10 +28,10 @@ import * as path from "path";
 import * as fs from "fs";
 
 // ============================================================
-// 🛠️ HELPER: Block ads at the network level
+//  HELPER: Block ads at the network level
 // ============================================================
 //
-// 📖 WHY network blocking beats UI dismissal:
+//  WHY network blocking beats UI dismissal:
 //
 //   UI approach problems:
 //   - Ads are timer-based: they reappear every ~30-60s
@@ -43,11 +43,11 @@ import * as fs from "fs";
 //   - No popup ever appears — nothing blocks your clicks
 //   - Works for every creative without selector maintenance
 //
-// 📖 HOW page.route() works:
+//  HOW page.route() works:
 //   page.route(pattern, handler) intercepts matching requests.
 //   route.abort() drops the request — ad never loads, no popup.
 //
-// ⚠️  IMPORTANT: Call blockAds() BEFORE page.goto()
+//  IMPORTANT: Call blockAds() BEFORE page.goto()
 //   Routes must be registered before navigation so they are
 //   active for the very first requests the page makes.
 //
@@ -64,7 +64,7 @@ async function blockAds(page: Page) {
 }
 
 // ============================================================
-// 🛠️ HELPER: Dismiss any ads that slipped through (safety net)
+//  HELPER: Dismiss any ads that slipped through (safety net)
 // ============================================================
 //
 // Network blocking handles ads loaded from external domains.
@@ -111,7 +111,7 @@ test.describe("File Upload", () => {
   });
 
   test("TC-U02 | should upload a text file successfully", async () => {
-    // 📖 CONCEPT: setInputFiles() is THE way to upload in Playwright.
+    //  CONCEPT: setInputFiles() is THE way to upload in Playwright.
     // It works even if the input is hidden behind a custom UI.
     // https://playwright.dev/docs/input#upload-files
     await uploadPage.uploadFile("test-upload.txt");
@@ -128,11 +128,11 @@ test.describe("File Upload", () => {
   test("TC-U05 | should handle file upload via FileChooser", async ({
     page,
   }) => {
-    // 📖 CONCEPT: Some sites open the OS file picker dialog.
+    //  CONCEPT: Some sites open the OS file picker dialog.
     // Playwright intercepts this with waitForEvent('filechooser')
     // https://playwright.dev/docs/api/class-filechooser
     //
-    // 📖 WHY Promise.all?
+    //  WHY Promise.all?
     // Register the listener BEFORE the click fires the dialog.
     // Promise.all starts both concurrently, eliminating the race.
     const [fileChooser] = await Promise.all([
@@ -147,7 +147,7 @@ test.describe("File Upload", () => {
 });
 
 // ============================================================
-// 📖 Why NOT shared page for download tests?
+//  Why NOT shared page for download tests?
 // ============================================================
 //
 // I tried test.describe.serial with a shared page in beforeAll.
@@ -182,17 +182,17 @@ test.describe("File Download", () => {
   });
 
   test("TC-D02 | should download text file successfully", async ({ page }) => {
-    // 📖 CRITICAL PATTERN: Promise.all for downloads
+    //  CRITICAL PATTERN: Promise.all for downloads
     //
     // Always register the download listener BEFORE clicking.
     // Promise.all guarantees the listener is in place when
     // the download event fires.
     //
-    // ⚠️ Race condition (never do this):
+    //  Race condition (never do this):
     //   const p = page.waitForEvent("download");
     //   await page.click(link);   // download fires, p might miss it
     //
-    // ✅ Safe (always do this):
+    //  Safe (always do this):
     //   const [dl] = await Promise.all([
     //     page.waitForEvent("download"),  // registered first
     //     page.click(link),               // triggers download
@@ -209,7 +209,7 @@ test.describe("File Download", () => {
   });
 
   test("TC-D03 | should download and verify text file content", async () => {
-    // 📖 CONCEPT: After downloading, read and assert file content.
+    //  CONCEPT: After downloading, read and assert file content.
     const content = await downloadPage.downloadAndReadText("some-file.txt");
     expect(content.length).toBeGreaterThan(0);
   });
@@ -231,7 +231,7 @@ test.describe("File Download", () => {
   });
 
   test("TC-D06 | should save download to custom location", async ({ page }) => {
-    // 📖 saveAs() → save to a specific path
+    //  saveAs() → save to a specific path
     // https://playwright.dev/docs/api/class-download#download-save-as
     const [download] = await Promise.all([
       page.waitForEvent("download"),
@@ -266,7 +266,7 @@ test.describe("File Download", () => {
 });
 
 // ============================================================
-// 🎓 FULL UPLOAD-DOWNLOAD CYCLE TEST
+//  FULL UPLOAD-DOWNLOAD CYCLE TEST
 // ============================================================
 // this test site dosnt allow the cycle  upload->download .. ill just upload and download exsisting files
 test.describe("Upload-Download Cycle", () => {
@@ -290,30 +290,30 @@ test.describe("Upload-Download Cycle", () => {
 });
 
 // ============================================================
-// 📖 B LEARNED
+//  B LEARNED
 // ============================================================
 //
-// ✅ File Upload:
+//  File Upload:
 //    - setInputFiles(path) → upload a file
 //    - setInputFiles([paths]) → upload multiple files
 //    - setInputFiles([]) → clear upload
 //    - waitForEvent('filechooser') → handle OS dialogs
 //
-// ✅ File Download:
+//  File Download:
 //    - waitForEvent('download') → intercept downloads
 //    - download.path() → get temp file path
 //    - download.saveAs(path) → save to custom location
 //    - download.suggestedFilename() → get filename
 //    - download.url() → get download URL
 //
-// ✅ Network Interception (page.route):
+//  Network Interception (page.route):
 //    - page.route(pattern, handler) → intercept requests
 //    - route.abort() → drop the request entirely
 //    - ALWAYS register routes before page.goto()
 //    - Glob patterns: "**/*doubleclick.net/**"
 //    - More reliable than UI-based ad dismissal
 //
-// ✅ beforeAll vs beforeEach:
+//  beforeAll vs beforeEach:
 //    - beforeAll runs once per describe block per WORKER
 //    - If Playwright distributes tests across workers, beforeAll
 //      in one worker won't apply to tests in another worker
@@ -321,7 +321,7 @@ test.describe("Upload-Download Cycle", () => {
 //    - Prefer beforeEach for reliable setup; use beforeAll only
 //      for expensive one-time operations (DB seed, auth tokens)
 //
-// ✅ Best Practices:
+//  Best Practices:
 //    - Use Promise.all for BOTH downloads AND filechooser events
 //    - Always use absolute paths for file uploads
 //    - Clean up downloaded files after tests

@@ -1,7 +1,7 @@
 import { Page, Locator, expect } from "@playwright/test";
 
 // ============================================================
-// 📖 LECTURE: Shadow DOM Page Object
+//  LECTURE: Shadow DOM Page Object
 // ============================================================
 // WHAT IS SHADOW DOM?
 //   Shadow DOM is a web standard that allows developers to
@@ -26,7 +26,7 @@ import { Page, Locator, expect } from "@playwright/test";
 // THE PROBLEM FOR TESTING:
 //   Regular locators CANNOT see inside Shadow DOM!
 //
-//   ❌ This won't work:
+//    This won't work:
 //   page.locator('#button-inside-shadow').click();
 //   → NoSuchElementException
 //
@@ -48,7 +48,7 @@ export class ShadowDOMPage {
   }
 
   // ══════════════════════════════════════════════════════════
-  // 📖 METHOD 1: Piercing Selector (EASIEST - Playwright Magic)
+  //  METHOD 1: Piercing Selector (EASIEST - Playwright Magic)
   // ══════════════════════════════════════════════════════════
   //
   // Playwright's >>> combinator pierces through shadow boundaries
@@ -59,7 +59,7 @@ export class ShadowDOMPage {
   // https://playwright.dev/docs/other-locators#css-matching-shadow-dom
 
   async clickButtonViaPiercingSelector() {
-    // ✅ The >>> combinator pierces shadow boundaries
+    //  The >>> combinator pierces shadow boundaries
     // '#shadow-host' → the host element (in main DOM)
     // '>>>' → pierce into shadow root
     // '#my-btn' → element inside shadow DOM
@@ -73,7 +73,7 @@ export class ShadowDOMPage {
   }
 
   // ══════════════════════════════════════════════════════════
-  // 📖 METHOD 2: JavaScript Evaluation (MANUAL APPROACH)
+  //  METHOD 2: JavaScript Evaluation (MANUAL APPROACH)
   // ══════════════════════════════════════════════════════════
   //
   // When piercing doesn't work (rare), you can manually access
@@ -104,7 +104,7 @@ export class ShadowDOMPage {
   }
 
   // ══════════════════════════════════════════════════════════
-  // 📖 METHOD 3: Nested Shadow DOM (Multiple Levels)
+  //  METHOD 3: Nested Shadow DOM (Multiple Levels)
   // ══════════════════════════════════════════════════════════
   //
   // Some components have shadow DOM INSIDE shadow DOM.
@@ -123,7 +123,7 @@ export class ShadowDOMPage {
   }
 
   // ══════════════════════════════════════════════════════════
-  // 📖 METHOD 4: Working with Open vs Closed Shadow Roots
+  //  METHOD 4: Working with Open vs Closed Shadow Roots
   // ══════════════════════════════════════════════════════════
   //
   // Shadow DOM has two modes:
@@ -150,7 +150,7 @@ export class ShadowDOMPage {
   }
 
   // ══════════════════════════════════════════════════════════
-  // 📖 COMMON PATTERNS & HELPERS
+  //  COMMON PATTERNS & HELPERS
   // ══════════════════════════════════════════════════════════
 
   // Find ALL elements inside shadow DOM
@@ -208,7 +208,7 @@ export class ShadowDOMPage {
   }
 
   // ══════════════════════════════════════════════════════════
-  // 📖 ASSERTIONS
+  //  ASSERTIONS
   // ══════════════════════════════════════════════════════════
 
   async expectButtonVisible() {
@@ -227,7 +227,7 @@ export class ShadowDOMPage {
 }
 
 // ============================================================
-// 📖 DEBUGGING SHADOW DOM
+//  DEBUGGING SHADOW DOM
 // ============================================================
 //
 // Chrome DevTools:
@@ -244,7 +244,7 @@ export class ShadowDOMPage {
 // - Or use evaluate() to log shadowRoot structure
 //
 // ============================================================
-// 📖 REAL-WORLD SHADOW DOM EXAMPLES
+//  REAL-WORLD SHADOW DOM EXAMPLES
 // ============================================================
 //
 // Salesforce Lightning:
@@ -263,23 +263,23 @@ export class ShadowDOMPage {
 // Some browsers use shadow DOM for native controls
 //
 // ============================================================
-// 📖 COMMON PITFALLS
+//  COMMON PITFALLS
 // ============================================================
 //
-// ❌ MISTAKE 1: Using XPath on shadow elements
+//  MISTAKE 1: Using XPath on shadow elements
 // XPath DOES NOT WORK with Shadow DOM.
-// page.locator('//button[@id="my-btn"]')  // ❌ Won't find it!
+// page.locator('//button[@id="my-btn"]')  //  Won't find it!
 //
-// ✅ SOLUTION: Use CSS or piercing selectors
+//  SOLUTION: Use CSS or piercing selectors
 // page.locator('#shadow-host >>> #my-btn')
 //
-// ❌ MISTAKE 2: Trying to screenshot shadow content
+//  MISTAKE 2: Trying to screenshot shadow content
 // page.locator('#shadow-host >>> #my-btn').screenshot()  // Might fail
 //
-// ✅ SOLUTION: Screenshot the host element
+//  SOLUTION: Screenshot the host element
 // page.locator('#shadow-host').screenshot()
 //
-// ❌ MISTAKE 3: Assuming all custom elements use shadow DOM
+//  MISTAKE 3: Assuming all custom elements use shadow DOM
 // Not all <custom-element> tags have shadow roots!
 // Always verify in DevTools first.
 //

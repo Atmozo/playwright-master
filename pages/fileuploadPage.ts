@@ -2,7 +2,7 @@ import { Page, Locator, expect, FileChooser } from "@playwright/test";
 import * as path from "path";
 
 // ============================================================
-// 📖 LECTURE: File Upload Page Object
+//  LECTURE: File Upload Page Object
 // ============================================================
 //  - setInputFiles() → the main upload method
 //  - Handling drag-and-drop upload zones
@@ -38,7 +38,7 @@ export class FileUploadPage {
   constructor(page: Page) {
     this.page = page;
 
-    // 📖 CONCEPT: File inputs are often hidden with CSS
+    //  CONCEPT: File inputs are often hidden with CSS
     // The real <input type="file"> is invisible, but Playwright
     // can still interact with it using setInputFiles()
     this.fileInput = page.getByTestId("file-input");
@@ -66,7 +66,7 @@ export class FileUploadPage {
 
   // Method 1: Upload via setInputFiles (PREFERRED)
   // This works even if the input is hidden
-  // 📖 https://playwright.dev/docs/input#upload-files
+  //  https://playwright.dev/docs/input#upload-files
   async uploadFile(filename: string) {
     // Construct absolute path to test file
     // __dirname → current file's directory
@@ -89,7 +89,7 @@ export class FileUploadPage {
   }
 
   // Method 3: Upload via FileChooser (for native OS dialogs)
-  // 📖 https://playwright.dev/docs/api/class-filechooser
+  //  https://playwright.dev/docs/api/class-filechooser
   async uploadViaFileChooser(filename: string) {
     const filePath = path.join(__dirname, "../fixtures", filename);
 
@@ -141,7 +141,7 @@ export class FileUploadPage {
 }
 
 // ============================================================
-// 📖 REAL-WORLD PATTERNS
+//  REAL-WORLD PATTERNS
 // ============================================================
 //
 // Pattern 1: Testing file type restrictions

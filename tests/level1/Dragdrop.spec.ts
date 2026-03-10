@@ -1,16 +1,16 @@
 // ============================================================
-// 🎓 BONUS: Drag & Drop (Level 2 Preview)
+//  BONUS: Drag & Drop (Level 2 Preview)
 // Site: /drag-and-drop
 // ============================================================
 //
 // KEYS INIT:
-//  ✅ dragTo() → the modern drag-drop method
-//  ✅ Manual mouse drag (when dragTo fails)
-//  ✅ HTML5 drag-drop events
-//  ✅ Verifying drag-drop success
-//  ✅ Troubleshooting drag-drop issues
+//   dragTo() → the modern drag-drop method
+//   Manual mouse drag (when dragTo fails)
+//   HTML5 drag-drop events
+//   Verifying drag-drop success
+//   Troubleshooting drag-drop issues
 //
-// 📖 PLAYWRIGHT DOCS TO READ:
+//  PLAYWRIGHT DOCS TO READ:
 //  Dragging:     https://playwright.dev/docs/input#dragging
 //  Mouse:        https://playwright.dev/docs/api/class-mouse
 //  dragTo():     https://playwright.dev/docs/api/class-locator#locator-drag-to
@@ -28,7 +28,7 @@ test.describe("Drag & Drop", () => {
   });
 
   // ══════════════════════════════════════════════════════════
-  // ✅ BASIC DRAG & DROP
+  //  BASIC DRAG & DROP
   // ══════════════════════════════════════════════════════════
 
   test("TC-DD01 | should display drag-drop elements", async () => {
@@ -41,7 +41,7 @@ test.describe("Drag & Drop", () => {
   });
 
   test("TC-DD02 | should drag column A to column B", async () => {
-    // 📖 CONCEPT: dragTo() is Playwright's built-in drag-drop method
+    //  CONCEPT: dragTo() is Playwright's built-in drag-drop method
     // It handles all the mouse events automatically
     //
     // https://playwright.dev/docs/api/class-locator#locator-drag-to
@@ -102,7 +102,7 @@ test.describe("Drag & Drop", () => {
   });
 
   // ══════════════════════════════════════════════════════════
-  // ✅ ALTERNATIVE DRAG-DROP METHODS
+  //  ALTERNATIVE DRAG-DROP METHODS
   // ══════════════════════════════════════════════════════════
 
   test("TC-DD06 | should drag using manual mouse movements", async ({
@@ -110,7 +110,7 @@ test.describe("Drag & Drop", () => {
   }) => {
     await dragDropPage.expectOriginalState();
 
-    // ✅ Close any overlays and scroll columns into view
+    //  Close any overlays and scroll columns into view
     await page.keyboard.press("Escape");
     await dragDropPage.columnA.scrollIntoViewIfNeeded();
 
@@ -135,7 +135,7 @@ test.describe("Drag & Drop", () => {
   });
 
   test("TC-DD08 | should handle HTML5 drag-drop", async () => {
-    // 📖  POINT: Some sites use HTML5 DataTransfer API
+    //   POINT: Some sites use HTML5 DataTransfer API
     // If dragTo() fails, try this method
 
     await dragDropPage.expectOriginalState();
@@ -150,7 +150,7 @@ test.describe("Drag & Drop", () => {
   });
 
   // ══════════════════════════════════════════════════════════
-  // ✅ EDGE CASES & ERROR HANDLING
+  //  EDGE CASES & ERROR HANDLING
   // ══════════════════════════════════════════════════════════
 
   test("TC-DD09 | should handle drag on same element", async () => {
@@ -169,14 +169,14 @@ test.describe("Drag & Drop", () => {
     const columnA = dragDropPage.columnA;
     await expect(columnA).toBeVisible();
 
-    // ✅ hover first to stabilise before drag
+    //  hover first to stabilise before drag
     await columnA.hover();
     await page.waitForTimeout(100);
     await dragDropPage.dragAtoB();
     await dragDropPage.expectSwapped();
   });
   test("TC-DD11 | should use hover before drag", async ({ page }) => {
-    // 📖 TIP: Sometimes hovering first helps with flaky drag-drop
+    //  TIP: Sometimes hovering first helps with flaky drag-drop
 
     // Hover over source element
     await dragDropPage.columnA.hover();
@@ -192,7 +192,7 @@ test.describe("Drag & Drop", () => {
     const source = dragDropPage.columnA;
     const target = dragDropPage.columnB;
 
-    // ✅ Dismiss ad and wait until it's actually gone
+    //  Dismiss ad and wait until it's actually gone
     await page.keyboard.press("Escape");
     await source.scrollIntoViewIfNeeded();
     await page
@@ -231,11 +231,11 @@ test.describe("Drag & Drop", () => {
     await dragDropPage.expectSwapped();
   });
   // ══════════════════════════════════════════════════════════
-  // ✅ ACCESSIBILITY TESTING
+  //  ACCESSIBILITY TESTING
   // ══════════════════════════════════════════════════════════
 
   test("TC-DD13 | should verify keyboard accessibility", async ({ page }) => {
-    // 📖 BEST PRACTICE: Drag-drop should work with keyboard too
+    //  BEST PRACTICE: Drag-drop should work with keyboard too
     // (Space to grab, arrow keys to move, Enter to drop)
 
     // This is an advanced topic - most drag-drop is mouse-only
@@ -250,21 +250,21 @@ test.describe("Drag & Drop", () => {
 });
 
 // ============================================================
-// 📖 SUMMARY
+//  SUMMARY
 // ============================================================
 //
-// ✅ Drag & Drop Methods:
+//  Drag & Drop Methods:
 //    - dragTo() → easiest, works 90% of time
 //    - Manual mouse → when dragTo() fails
 //    - HTML5 drag-drop → for older implementations
 //
-// ✅ Troubleshooting:
+//  Troubleshooting:
 //    - Add { force: true } if element is covered
 //    - Use hover() before drag for flaky tests
 //    - Add delays for slow animations
 //    - Try manual mouse if dragTo() fails
 //
-// ✅ Best Practices:
+//  Best Practices:
 //    - Always verify before/after state
 //    - Test multiple drag operations
 //    - Consider keyboard accessibility

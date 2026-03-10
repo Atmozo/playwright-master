@@ -1,10 +1,10 @@
-# 🚀 Parallel Execution & Workers - The Complete Guide
+# Parallel Execution & Workers - The Complete Guide
 
 > Make your tests execute in parallel for 10x faster CI/CD
 
 ---
 
-## 📚 Understanding Playwright's Execution Model
+## Understanding Playwright's Execution Model
 
 ### The Worker Concept
 
@@ -12,13 +12,13 @@
 
 ```
 Test Suite (100 tests)
-│
+
 ├─ Worker 1 (Process A) → Tests 1-25
 ├─ Worker 2 (Process B) → Tests 26-50
 ├─ Worker 3 (Process C) → Tests 51-75
 └─ Worker 4 (Process D) → Tests 76-100
 
-All running SIMULTANEOUSLY ⚡
+All running SIMULTANEOUSLY
 ```
 
 Each worker gets:
@@ -30,7 +30,7 @@ Each worker gets:
 
 ---
 
-## 🎯 Configuring Parallelization
+## Configuring Parallelization
 
 ### playwright.config.ts
 
@@ -38,9 +38,7 @@ Each worker gets:
 import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
-  // ══════════════════════════════════════════════════════════
-  // 📖 WORKERS: How many parallel processes
-  // ══════════════════════════════════════════════════════════
+  // WORKERS: How many parallel processes
 
   // Option 1: Auto-detect CPU cores (RECOMMENDED for local)
   workers: undefined, // Uses 50% of CPU cores
@@ -54,9 +52,7 @@ export default defineConfig({
   // Option 4: CI optimization
   workers: process.env.CI ? 2 : undefined,
 
-  // ══════════════════════════════════════════════════════════
-  // 📖 FULLY PARALLEL: Test vs File Level
-  // ══════════════════════════════════════════════════════════
+  // FULLY PARALLEL: Test vs File Level
 
   // false (DEFAULT): Tests in same file run sequentially
   //                  But different files run in parallel
@@ -66,9 +62,7 @@ export default defineConfig({
   //       Fastest, but requires careful test isolation
   fullyParallel: true,
 
-  // ══════════════════════════════════════════════════════════
-  // 📖 TEST SHARDING: Split tests across multiple machines
-  // ══════════════════════════════════════════════════════════
+  // TEST SHARDING: Split tests across multiple machines
 
   shard: process.env.CI
     ? {
@@ -81,44 +75,30 @@ export default defineConfig({
 
 ---
 
-## 🎮 CLI Commands for Parallel Control
+## CLI Commands for Parallel Control
 
 ```bash
-# ══════════════════════════════════════════════════════════
 # Run with default workers (auto-detect)
-# ══════════════════════════════════════════════════════════
 npx playwright test
 
-# ══════════════════════════════════════════════════════════
 # Sequential (one test at a time) - SLOWEST but easiest debugging
-# ══════════════════════════════════════════════════════════
 npx playwright test --workers=1
 
-# ══════════════════════════════════════════════════════════
 # Fixed number of workers
-# ══════════════════════════════════════════════════════════
 npx playwright test --workers=4      # Use 4 workers
 npx playwright test --workers=8      # Use 8 workers
 
-# ══════════════════════════════════════════════════════════
 # Percentage of CPU cores
-# ══════════════════════════════════════════════════════════
 npx playwright test --workers=50%    # Half of CPU cores
 npx playwright test --workers=100%   # All CPU cores (max speed, high resource use)
 
-# ══════════════════════════════════════════════════════════
 # Fully parallel (override config)
-# ══════════════════════════════════════════════════════════
 npx playwright test --fully-parallel
 
-# ══════════════════════════════════════════════════════════
 # Run specific file with workers
-# ══════════════════════════════════════════════════════════
 npx playwright test tests/auth.spec.ts --workers=2
 
-# ══════════════════════════════════════════════════════════
 # Run tests on specific shard (for CI)
-# ══════════════════════════════════════════════════════════
 npx playwright test --shard=1/4      # Machine 1 of 4
 npx playwright test --shard=2/4      # Machine 2 of 4
 npx playwright test --shard=3/4      # Machine 3 of 4
@@ -127,16 +107,14 @@ npx playwright test --shard=4/4      # Machine 4 of 4
 
 ---
 
-## 📝 Per-File Parallel Control
+## Per-File Parallel Control
 
 ### describe.configure()
 
 ```typescript
 import { test, expect } from '@playwright/test';
 
-// ══════════════════════════════════════════════════════════
 // Run tests in this file SEQUENTIALLY (even with workers)
-// ══════════════════════════════════════════════════════════
 test.describe.configure({ mode: 'serial' });
 
 test.describe('Login flow', () => {
@@ -146,9 +124,7 @@ test.describe('Login flow', () => {
   // These 3 run one after another, share same worker
 });
 
-// ══════════════════════════════════════════════════════════
 // Run tests in parallel (override config)
-// ══════════════════════════════════════════════════════════
 test.describe.configure({ mode: 'parallel' });
 
 test.describe('Product tests', () => {
@@ -158,27 +134,23 @@ test.describe('Product tests', () => {
   // These can run in different workers simultaneously
 });
 
-// ══════════════════════════════════════════════════════════
 // Set timeout for slow tests
-// ══════════════════════════════════════════════════════════
 test.describe.configure({ timeout: 60000 });  // 60 seconds
 
-// ══════════════════════════════════════════════════════════
 // Retries for flaky tests
-// ══════════════════════════════════════════════════════════
 test.describe.configure({ retries: 2 });  // Retry failed tests 2 times
 ```
 
 ---
 
-## 🎯 Test Isolation Best Practices
+## Test Isolation Best Practices
 
 ### The Golden Rule
 
 **Each test must work in isolation, regardless of execution order**
 
 ```typescript
-// ❌ BAD: Tests depend on each other
+// BAD: Tests depend on each other
 let userId: number;
 
 test('create user', async ({ request }) => {
@@ -187,11 +159,11 @@ test('create user', async ({ request }) => {
 });
 
 test('update user', async ({ request }) => {
-  // ❌ Assumes previous test ran first
+  // Assumes previous test ran first
   await request.patch(`/api/users/${userId}`, { data: {...} });
 });
 
-// ✅ GOOD: Each test is independent
+// GOOD: Each test is independent
 test('create user', async ({ request }) => {
   const response = await request.post('/api/users', { data: {...} });
   const userId = (await response.json()).id;
@@ -239,7 +211,7 @@ test.describe('User management', () => {
 
 ---
 
-## 🔧 Worker-Specific Patterns
+## Worker-Specific Patterns
 
 ### Shared State Across Tests in Same Worker
 
@@ -285,7 +257,7 @@ test.describe("Product tests", () => {
 
 ---
 
-## ⚡ Performance Optimization Strategies
+## Performance Optimization Strategies
 
 ### 1. Group Fast Tests, Isolate Slow Tests
 
@@ -321,7 +293,7 @@ test.describe("Integration tests", () => {
 ### 2. Use API for Setup, UI for Testing
 
 ```typescript
-// ❌ SLOW: Create user via UI (30 seconds)
+// SLOW: Create user via UI (30 seconds)
 test('test user profile', async ({ page }) => {
   await page.goto('/register');
   await page.fill('#username', 'test');
@@ -333,7 +305,7 @@ test('test user profile', async ({ page }) => {
   await page.goto('/profile');
 });
 
-// ✅ FAST: Create user via API (2 seconds)
+// FAST: Create user via API (2 seconds)
 test('test user profile', async ({ page, request }) => {
   const response = await request.post('/api/users', { data: {...} });
   const { id, token } = await response.json();
@@ -374,31 +346,25 @@ export default defineConfig({
 
 ---
 
-## 📊 Measuring Parallel Performance
+## Measuring Parallel Performance
 
 ```bash
-# ══════════════════════════════════════════════════════════
 # Measure sequential execution
-# ══════════════════════════════════════════════════════════
 time npx playwright test --workers=1
 # Example: 10 minutes
 
-# ══════════════════════════════════════════════════════════
 # Measure parallel execution
-# ══════════════════════════════════════════════════════════
 time npx playwright test --workers=4
 # Example: 3 minutes (3.3x faster!)
 
-# ══════════════════════════════════════════════════════════
 # Measure with all cores
-# ══════════════════════════════════════════════════════════
 time npx playwright test --workers=100%
 # Example: 2 minutes (5x faster, but high resource use)
 ```
 
 ---
 
-## 🎯 CI/CD Configuration
+## CI/CD Configuration
 
 ### GitHub Actions Example
 
@@ -436,13 +402,13 @@ jobs:
 
 ```
 Total tests: 400
-4 machines × 2 workers each = 8 parallel processes
+4 machines x 2 workers each = 8 parallel processes
 Total time: ~10 minutes instead of 80 minutes!
 ```
 
 ---
 
-## 🔍 Debugging Parallel Tests
+## Debugging Parallel Tests
 
 ```bash
 # Run with UI mode to see all tests
@@ -463,31 +429,31 @@ npx playwright test --reporter=list
 
 ---
 
-## ✅ Summary Checklist
+## Summary Checklist
 
 ### For Maximum Speed
 
-- ✅ Use `fullyParallel: true` in config
-- ✅ Set `workers` to 50-75% of CPU cores
-- ✅ Use API for test data setup
-- ✅ Ensure tests are isolated
-- ✅ Use test sharding in CI
+- Use `fullyParallel: true` in config
+- Set `workers` to 50-75% of CPU cores
+- Use API for test data setup
+- Ensure tests are isolated
+- Use test sharding in CI
 
 ### For Debugging
 
-- ✅ Use `--workers=1` to run sequentially
-- ✅ Use `test.describe.configure({ mode: 'serial' })`
-- ✅ Use `--headed` to see browser
-- ✅ Use `--debug` for step-through
+- Use `--workers=1` to run sequentially
+- Use `test.describe.configure({ mode: 'serial' })`
+- Use `--headed` to see browser
+- Use `--debug` for step-through
 
 ### For Reliability
 
-- ✅ Clean up test data in `afterEach`
-- ✅ Don't share state between tests
-- ✅ Use `beforeEach` for setup
-- ✅ Make tests order-independent
-- ✅ Use unique test data (timestamps, UUIDs)
+- Clean up test data in `afterEach`
+- Don't share state between tests
+- Use `beforeEach` for setup
+- Make tests order-independent
+- Use unique test data (timestamps, UUIDs)
 
 ---
 
-**Your tests can now execute in parallel for 10x faster CI/CD! 🚀**
+**Your tests can now execute in parallel for 10x faster CI/CD!**

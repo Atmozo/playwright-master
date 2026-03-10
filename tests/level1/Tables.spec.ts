@@ -1,19 +1,19 @@
 // ============================================================
-// 🎓 LEVEL 1 — Challenge 4: Dynamic Tables
+//  LEVEL 1 — Challenge 4: Dynamic Tables
 // Site: /tables
 // ============================================================
 //
 // KEYS IN THIS FILE:
-//  ✅ .locator().nth(index) → get specific row/cell
-//  ✅ .locator().all() → get array of all elements
-//  ✅ .allTextContents() → extract all text at once
-//  ✅ Looping through rows
-//  ✅ Finding rows by content
-//  ✅ Testing sorting
-//  ✅ Extracting column data
-//  ✅ Working with table headers
+//   locator().nth(index) → get specific row/cell
+//   .locator().all() → get array of all elements
+//   .allTextContents() → extract all text at once
+//   Looping through rows
+//   Finding rows by content
+//   Testing sorting
+//   Extracting column data
+//  Working with table headers
 //
-// 📖 PLAYWRIGHT DOCS TO READ:
+//  PLAYWRIGHT DOCS TO READ:
 //  Lists:        https://playwright.dev/docs/locators#lists
 //  .nth():       https://playwright.dev/docs/api/class-locator#locator-nth
 //  .all():       https://playwright.dev/docs/api/class-locator#locator-all
@@ -32,7 +32,7 @@ test.describe("Dynamic Tables", () => {
   });
 
   // ══════════════════════════════════════════════════════════
-  // ✅ BASIC TABLE STRUCTURE TESTS
+  //  BASIC TABLE STRUCTURE TESTS
   // ══════════════════════════════════════════════════════════
 
   test("TC-T01 | should display table correctly", async () => {
@@ -45,7 +45,7 @@ test.describe("Dynamic Tables", () => {
   });
 
   test("TC-T02 | should get correct number of rows", async () => {
-    // 📖 CONCEPT: .count() returns number of matching elements
+    //  CONCEPT: .count() returns number of matching elements
     // https://playwright.dev/docs/api/class-locator#locator-count
     const rowCount = await tablePage.getRowCount();
 
@@ -61,7 +61,7 @@ test.describe("Dynamic Tables", () => {
   });
 
   test("TC-T04 | should get table headers", async () => {
-    // 📖 CONCEPT: allTextContents() returns array of all text
+    //  CONCEPT: allTextContents() returns array of all text
     // https://playwright.dev/docs/api/class-locator#locator-all-text-contents
     const headers = await tablePage.getHeaders();
 
@@ -79,11 +79,11 @@ test.describe("Dynamic Tables", () => {
   });
 
   // ══════════════════════════════════════════════════════════
-  // ✅ READING CELL DATA
+  //  READING CELL DATA
   // ══════════════════════════════════════════════════════════
 
   test("TC-T05 | should read specific cell content", async () => {
-    // 📖 CONCEPT: .nth(index) gets the element at that position
+    // CONCEPT: .nth(index) gets the element at that position
     // https://playwright.dev/docs/api/class-locator#locator-nth
 
     // Get text from row 0, column 0
@@ -107,7 +107,7 @@ test.describe("Dynamic Tables", () => {
   });
 
   test("TC-T07 | should read all table data as 2D array", async () => {
-    // 📖 CONCEPT: .all() returns array of locators you can loop through
+    //  CONCEPT: .all() returns array of locators you can loop through
     // https://playwright.dev/docs/api/class-locator#locator-all
     const allData = await tablePage.getAllTableData();
 
@@ -120,7 +120,7 @@ test.describe("Dynamic Tables", () => {
   });
 
   test("TC-T08 | should access specific row using nth()", async () => {
-    // 📖 TEACHING POINT: .nth() is how you get a specific element
+    //  TEACHING POINT: .nth() is how you get a specific element
     // from a list of matching elements
 
     // Get the 3rd row (index 2)
@@ -135,7 +135,7 @@ test.describe("Dynamic Tables", () => {
   });
 
   // ══════════════════════════════════════════════════════════
-  // ✅ SEARCHING & FILTERING
+  //  SEARCHING & FILTERING
   // ══════════════════════════════════════════════════════════
 
   test("TC-T09 | should find row by cell content", async () => {
@@ -171,7 +171,7 @@ test.describe("Dynamic Tables", () => {
   });
 
   // ══════════════════════════════════════════════════════════
-  // ✅ EXTRACTING COLUMN DATA
+  //  EXTRACTING COLUMN DATA
   // ══════════════════════════════════════════════════════════
 
   test("TC-T12 | should get all values from a specific column", async () => {
@@ -202,7 +202,7 @@ test.describe("Dynamic Tables", () => {
   });
 
   // ══════════════════════════════════════════════════════════
-  // ✅ SORTING TESTS
+  //  SORTING TESTS
   // ══════════════════════════════════════════════════════════
 
   test("TC-T14 | should sort table by clicking column header", async ({
@@ -250,7 +250,7 @@ test.describe("Dynamic Tables", () => {
   });
 
   // ══════════════════════════════════════════════════════════
-  // ✅ ROW ACTIONS (Edit, Delete, etc.)
+  //  ROW ACTIONS (Edit, Delete, etc.)
   // ══════════════════════════════════════════════════════════
 
   test("TC-T16 | should click action button in specific row", async ({
@@ -286,7 +286,7 @@ test.describe("Dynamic Tables", () => {
   });
 
   // ══════════════════════════════════════════════════════════
-  // ✅ ADVANCED: LOOPING THROUGH ALL ROWS
+  //  ADVANCED: LOOPING THROUGH ALL ROWS
   // ══════════════════════════════════════════════════════════
 
   test("TC-T18 | should loop through all rows and verify structure", async () => {
@@ -308,7 +308,7 @@ test.describe("Dynamic Tables", () => {
   });
 
   test("TC-T19 | should use .all() to process all rows", async () => {
-    // 📖 POINT: .all() returns array of Locator objects
+    //  POINT: .all() returns array of Locator objects
     // You can then loop through them
     const rows = await tablePage.tableRows.all();
 
@@ -326,7 +326,7 @@ test.describe("Dynamic Tables", () => {
   });
 
   // ══════════════════════════════════════════════════════════
-  // ✅ EDGE CASES
+  //  EDGE CASES
   // ══════════════════════════════════════════════════════════
 
   test("TC-T20 | should handle empty cells gracefully", async () => {
@@ -344,23 +344,23 @@ test.describe("Dynamic Tables", () => {
 });
 
 // ============================================================
-// 📖 KEY TAKEAWAYS
+//  KEY TAKEAWAYS
 // ============================================================
 //
-// ✅ Table Navigation:
+//  Table Navigation:
 //    - .count() → number of elements
 //    - .nth(index) → get specific element
 //    - .all() → get array of locators
 //    - .allTextContents() → array of text
 //
-// ✅ Common Patterns:
+//  Common Patterns:
 //    - Loop through rows with for loop
 //    - Find row by content
 //    - Extract column data
 //    - Verify sorting
 //    - Click actions in specific rows
 //
-// ✅ Best Practices:
+//  Best Practices:
 //    - Always verify row/column count first
 //    - Handle empty cells gracefully
 //    - Use .nth() for specific rows

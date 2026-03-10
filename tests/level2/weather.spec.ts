@@ -1,13 +1,13 @@
 // ============================================================
-// 🌤️ Weather API Tests - EXACT Conversion from  Java
+//  Weather API Tests - EXACT Conversion from  Java
 // ============================================================
 //
 // This is a 1:1 conversion maintaining:
-//  ✅ Same test names
-//  ✅ Same assertions
-//  ✅ Same test descriptions
-//  ✅ Same severity levels
-//  ✅ Same test flow
+//   Same test names
+//  Same assertions
+//   Same test descriptions
+//   Same severity levels
+//   Same test flow
 // ============================================================
 
 import { test, expect } from "@playwright/test";
@@ -22,7 +22,7 @@ test.describe("WeatherApi - Get weather data", () => {
     // Java: @BeforeClass public void getAuthorization()
     // In Playwright, we just verify API key exists
     if (!appid) {
-      console.warn("⚠️  appid not set! Set it in .env file");
+      console.warn("  appid not set! Set it in .env file");
     }
   });
 
@@ -305,7 +305,7 @@ test.describe("WeatherApi - Get weather data", () => {
 });
 
 // ============================================================
-// 📊 CONVERSION SUMMARY
+//  CONVERSION SUMMARY
 // ============================================================
 //
 // Java/REST Assured               | Playwright

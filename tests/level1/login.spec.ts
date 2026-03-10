@@ -1,19 +1,19 @@
 // ============================================================
-// 🎓 LEVEL 1 — Challenge 1: Login Flow
+//  LEVEL 1 — Challenge 1: Login Flow
 // Site: https://practice.expandtesting.com/login
 // ============================================================
 //
 // KEYS IN THIS FILE:
-//  ✅ test.describe → grouping related tests
-//  ✅ test.beforeEach → shared setup (DRY principle)
-//  ✅ test isolation → each test starts fresh
-//  ✅ Positive testing (happy path)
-//  ✅ Negative testing (error paths)
-//  ✅ getByRole, getByLabel, locator
-//  ✅ expect assertions: toBeVisible, toContainText, toHaveURL
-//  ✅ Page Object Model in action
+//   test.describe → grouping related tests
+//   test.beforeEach → shared setup (DRY principle)
+//   test isolation → each test starts fresh
+//   Positive testing (happy path)
+//   Negative testing (error paths)
+//   getByRole, getByLabel, locator
+//   expect assertions: toBeVisible, toContainText, toHaveURL
+//   Page Object Model in action
 //
-// 📖 PLAYWRIGHT DOCS TO READ (bookmark these):
+//  PLAYWRIGHT DOCS TO READ (bookmark these):
 //  Locators:    https://playwright.dev/docs/locators
 //  Assertions:  https://playwright.dev/docs/test-assertions
 //  POM:         https://playwright.dev/docs/pom
@@ -29,7 +29,7 @@ import { VALID_USER, INVALID_CREDENTIALS, MESSAGES } from "../../data/users";
 // In HTML reports, all these tests appear under "Login Flow".
 // Think of it like a test suite class in JUnit/pytest.
 //
-// 📖 https://playwright.dev/docs/api/class-test#test-describe
+//  https://playwright.dev/docs/api/class-test#test-describe
 test.describe("Login Flow", () => {
   // ── STEP 1: Declare page object variable ──────────────────
   // I declare it here so it's accessible in beforeEach
@@ -46,7 +46,7 @@ test.describe("Login Flow", () => {
   // WHY? If Test A logs in and Test B relies on that session,
   // you get FALSE results. Tests must be independent.
   //
-  // 📖 https://playwright.dev/docs/api/class-test#test-before-each
+  //  https://playwright.dev/docs/api/class-test#test-before-each
   test.beforeEach(async ({ page }) => {
     // { page } is dependency injection — Playwright gives us
     // a fresh Page for each test automatically.
@@ -55,7 +55,7 @@ test.describe("Login Flow", () => {
   });
 
   // ══════════════════════════════════════════════════════════
-  // ✅ POSITIVE TESTS — Happy Path
+  //  POSITIVE TESTS — Happy Path
   // ══════════════════════════════════════════════════════════
 
   test("TC-L01 | should display login page correctly", async () => {
@@ -64,13 +64,13 @@ test.describe("Login Flow", () => {
 
     // toBeVisible → checks element exists AND is visible
     // (not just in the DOM but actually shown to the user)
-    // 📖 https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-be-visible
+    //  https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-be-visible
     await expect(loginPage.usernameInput).toBeVisible();
     await expect(loginPage.passwordInput).toBeVisible();
     await expect(loginPage.loginButton).toBeVisible();
 
     // toHaveTitle → checks the <title> tag in the HTML
-    // 📖 https://playwright.dev/docs/api/class-pageassertions#page-assertions-to-have-title
+    //  https://playwright.dev/docs/api/class-pageassertions#page-assertions-to-have-title
     await expect(loginPage.page).toHaveTitle(/Login/i);
   });
 
@@ -102,12 +102,12 @@ test.describe("Login Flow", () => {
     await expect(page).toHaveURL(/login/);
 
     // toContainText → partial match, flexible for dynamic messages
-    // 📖 https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-contain-text
+    //  https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-contain-text
     await expect(loginPage.flashMessage).toContainText(MESSAGES.logoutSuccess);
   });
 
   // ══════════════════════════════════════════════════════════
-  // ❌ NEGATIVE TESTS — Error Paths
+  //  NEGATIVE TESTS — Error Paths
   // ══════════════════════════════════════════════════════════
   // These are JUST AS IMPORTANT as positive tests.
   // They prove your app fails gracefully with useful messages.
@@ -145,7 +145,7 @@ test.describe("Login Flow", () => {
     await loginPage.clickLogin();
 
     // Form should NOT have submitted → still on /login
-    // 📖 toHaveURL uses regex or exact string
+    //  toHaveURL uses regex or exact string
     //   https://playwright.dev/docs/api/class-pageassertions#page-assertions-to-have-url
     await expect(page).toHaveURL(/login/);
   });
@@ -176,7 +176,7 @@ test.describe("Login Flow", () => {
   });
 
   // ══════════════════════════════════════════════════════════
-  // 🔍 LOCATOR CONCEPTS DEMO
+  //  LOCATOR CONCEPTS DEMO
   // ══════════════════════════════════════════════════════════
 
   test("TC-L10 | locator strategies demonstration", async ({ page }) => {
@@ -208,7 +208,7 @@ test.describe("Login Flow", () => {
     await expect(button1).toBeVisible();
     await expect(username3).toBeVisible();
 
-    // 📖 Locator priority guide:
+    //  Locator priority guide:
     //   getByRole > getByLabel > getByText > getByTestId > CSS
     //   https://playwright.dev/docs/locators#locating-elements
   });

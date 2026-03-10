@@ -1,17 +1,17 @@
 // ============================================================
-// 🎓 LEVEL 1 — Challenge 5: IFrames & Multiple Windows
+//  LEVEL 1 — Challenge 5: IFrames & Multiple Windows
 // Sites: /iframe and /windows
 // ============================================================
 //
 // KEYS IN THIS FILE:
-//  ✅ frameLocator() → modern way to work with iframes
-//  ✅ Nested iframes (iframe in iframe)
-//  ✅ context.waitForEvent('page') → catch new windows
-//  ✅ Switching between multiple windows
-//  ✅ Finding windows by title/URL
-//  ✅ Closing windows properly
+//   frameLocator() → modern way to work with iframes
+//   ested iframes (iframe in iframe)
+//   context.waitForEvent('page') → catch new windows
+//   Switching between multiple windows
+//   Finding windows by title/URL
+//   Closing windows properly
 //
-// 📖 PLAYWRIGHT DOCS TO READ:
+//  PLAYWRIGHT DOCS TO READ:
 //  Frames:        https://playwright.dev/docs/frames
 //  FrameLocator:  https://playwright.dev/docs/api/class-framelocator
 //  Pages:         https://playwright.dev/docs/pages
@@ -31,17 +31,17 @@ test.describe("IFrames", () => {
   });
 
   // ══════════════════════════════════════════════════════════
-  // ✅ BASIC IFRAME TESTS
+  //  BASIC IFRAME TESTS
   // ══════════════════════════════════════════════════════════
 
   test("TC-IF01 | should display iframe on page", async ({ page }) => {
-    // 📖 CONCEPT: Verify iframe element exists in the DOM
+    //  CONCEPT: Verify iframe element exists in the DOM
     const iframe = page.locator("iframe").first();
     await expect(iframe).toBeAttached();
   });
 
   test("TC-IF02 | should access element inside iframe", async ({ page }) => {
-    // ✅ Target the YouTube iframe specifically, not the first (which is an ad)
+    //  Target the YouTube iframe specifically, not the first (which is an ad)
     const iframe = page.frameLocator('iframe[title="YouTube video player"]');
     await expect(iframe.locator("body")).toBeVisible();
   });
@@ -73,7 +73,7 @@ test.describe("IFrames", () => {
   });
 
   test("TC-IF06 | should get text from inside iframe", async () => {
-    // ✅ Use the internal email subscription iframe which has real text content
+    //  Use the internal email subscription iframe which has real text content
     const bodyText = await iframePage.getTextFromIFrame(
       "#email-subscribe",
       "body",
@@ -81,13 +81,13 @@ test.describe("IFrames", () => {
     expect(bodyText.length).toBeGreaterThan(0);
   });
   // ══════════════════════════════════════════════════════════
-  // ✅ ADVANCED: NESTED IFRAMES
+  //  ADVANCED: NESTED IFRAMES
   // ══════════════════════════════════════════════════════════
 
   test("TC-IF07 | should handle nested iframes (if present)", async ({
     page,
   }) => {
-    // 📖 CONCEPT: Chain frameLocator() for nested iframes
+    //  CONCEPT: Chain frameLocator() for nested iframes
     //
     // page → iframe1 → iframe2 → element
     //
@@ -100,7 +100,7 @@ test.describe("IFrames", () => {
     if (nestedIframes > 0) {
       // Access nested iframe
       const nestedIframe = iframe.frameLocator("iframe").first();
-      // ✅ Only verify it exists in DOM, not visible (nested ad iframes have hidden body)
+      //  Only verify it exists in DOM, not visible (nested ad iframes have hidden body)
       const bodyCount = await nestedIframe.locator("body").count();
       expect(bodyCount).toBeGreaterThan(0);
     } else {
@@ -111,7 +111,7 @@ test.describe("IFrames", () => {
   test("TC-IF08 | should switch between main page and iframe", async ({
     page,
   }) => {
-    // 📖 TEACHING POINT: You don't "switch" like Selenium.
+    //  TEACHING POINT: You don't "switch" like Selenium.
     // You use different locators:
 
     // Main page element
@@ -136,7 +136,7 @@ test.describe("Multiple Windows / Tabs", () => {
   });
 
   // ══════════════════════════════════════════════════════════
-  // ✅ BASIC WINDOW TESTS
+  //  BASIC WINDOW TESTS
   // ══════════════════════════════════════════════════════════
 
   test("TC-W01 | should display links that open new windows", async ({
@@ -151,7 +151,7 @@ test.describe("Multiple Windows / Tabs", () => {
     page,
     context,
   }) => {
-    // 📖 CRITICAL PATTERN:
+    //  CRITICAL PATTERN:
     // Listen for new window BEFORE clicking the link
     //
     // https://playwright.dev/docs/api/class-browsercontext#browser-context-wait-for-event
@@ -160,7 +160,7 @@ test.describe("Multiple Windows / Tabs", () => {
 
     const newPagePromise = context.waitForEvent("page");
 
-    // ✅ Use target="_blank" to ensure we click a link that opens a new window
+    //  Use target="_blank" to ensure we click a link that opens a new window
     const link = page.locator("a[target='_blank']").first();
     await link.click();
 
@@ -187,7 +187,7 @@ test.describe("Multiple Windows / Tabs", () => {
   }) => {
     // Open a new window
     const newPagePromise = context.waitForEvent("page");
-    // ✅ target="_blank" ensures a new window/tab opens
+    //  target="_blank" ensures a new window/tab opens
     await page.locator("a[target='_blank']").first().click();
     const newPage = await newPagePromise;
     await newPage.waitForLoadState();
@@ -211,7 +211,7 @@ test.describe("Multiple Windows / Tabs", () => {
 
     // Open new window
     const newPagePromise = context.waitForEvent("page");
-    // ✅ target="_blank" ensures a new window/tab opens
+    //  target="_blank" ensures a new window/tab opens
     await page.locator("a[target='_blank']").first().click();
     const newPage = await newPagePromise;
     await newPage.waitForLoadState();
@@ -226,7 +226,7 @@ test.describe("Multiple Windows / Tabs", () => {
   });
 
   // ══════════════════════════════════════════════════════════
-  // ✅ WORKING WITH NEW WINDOWS
+  //  WORKING WITH NEW WINDOWS
   // ══════════════════════════════════════════════════════════
 
   test("TC-W06 | should interact with elements in new window", async ({
@@ -235,7 +235,7 @@ test.describe("Multiple Windows / Tabs", () => {
   }) => {
     // Open new window
     const newPagePromise = context.waitForEvent("page");
-    // ✅ target="_blank" ensures a new window/tab opens
+    //  target="_blank" ensures a new window/tab opens
     await page.locator("a[target='_blank']").first().click();
     const newPage = await newPagePromise;
     await newPage.waitForLoadState();
@@ -256,7 +256,7 @@ test.describe("Multiple Windows / Tabs", () => {
     context,
   }) => {
     const newPagePromise = context.waitForEvent("page");
-    // ✅ target="_blank" ensures a new window/tab opens
+    //  target="_blank" ensures a new window/tab opens
     await page.locator("a[target='_blank']").first().click();
     const newPage = await newPagePromise;
     await newPage.waitForLoadState();
@@ -271,7 +271,7 @@ test.describe("Multiple Windows / Tabs", () => {
   test("TC-W08 | should close specific window", async ({ page, context }) => {
     // Open new window
     const newPagePromise = context.waitForEvent("page");
-    // ✅ target="_blank" ensures a new window/tab opens
+    //  target="_blank" ensures a new window/tab opens
     await page.locator("a[target='_blank']").first().click();
     const newPage = await newPagePromise;
     await newPage.waitForLoadState();
@@ -291,13 +291,13 @@ test.describe("Multiple Windows / Tabs", () => {
   }) => {
     // Open multiple windows
     const page2Promise = context.waitForEvent("page");
-    // ✅ target="_blank" ensures a new window/tab opens
+    //  target="_blank" ensures a new window/tab opens
     await page.locator("a[target='_blank']").first().click();
     const page2 = await page2Promise;
     await page2.waitForLoadState();
 
     const page3Promise = context.waitForEvent("page");
-    // ✅ target="_blank" ensures a new window/tab opens
+    //  target="_blank" ensures a new window/tab opens
     await page.locator("a[target='_blank']").nth(1).click();
     const page3 = await page3Promise;
     await page3.waitForLoadState();
@@ -313,13 +313,13 @@ test.describe("Multiple Windows / Tabs", () => {
   });
 
   // ══════════════════════════════════════════════════════════
-  // ✅ FINDING WINDOWS BY PROPERTIES
+  //  FINDING WINDOWS BY PROPERTIES
   // ══════════════════════════════════════════════════════════
 
   test("TC-W10 | should find window by title", async ({ page, context }) => {
     // Open new window
     const newPagePromise = context.waitForEvent("page");
-    // ✅ target="_blank" ensures a new window/tab opens
+    // target="_blank" ensures a new window/tab opens
     await page.locator("a[target='_blank']").first().click();
     const newPage = await newPagePromise;
     await newPage.waitForLoadState();
@@ -340,7 +340,7 @@ test.describe("Multiple Windows / Tabs", () => {
     context,
   }) => {
     const newPagePromise = context.waitForEvent("page");
-    // ✅ target="_blank" ensures a new window/tab opens
+    //  target="_blank" ensures a new window/tab opens
     await page.locator("a[target='_blank']").first().click();
     const newPage = await newPagePromise;
     await newPage.waitForLoadState();
@@ -360,7 +360,7 @@ test.describe("Multiple Windows / Tabs", () => {
     context,
   }) => {
     const newPagePromise = context.waitForEvent("page");
-    // ✅ target="_blank" ensures a new window/tab opens
+    //  target="_blank" ensures a new window/tab opens
     await page.locator("a[target='_blank']").first().click();
     const newPage = await newPagePromise;
     await newPage.waitForLoadState();
@@ -376,19 +376,19 @@ test.describe("Multiple Windows / Tabs", () => {
   });
 
   // ══════════════════════════════════════════════════════════
-  // ✅ ADVANCED: POPUP WINDOWS
+  //  ADVANCED: POPUP WINDOWS
   // ══════════════════════════════════════════════════════════
 
   test("TC-W13 | should handle popup window workflow", async ({
     page,
     context,
   }) => {
-    // 📖 REAL-WORLD PATTERN:
+    //  REAL-WORLD PATTERN:
     // Some sites open popups for auth, payment, etc.
     // You work in popup, then close it and return to main page
 
     const popupPromise = context.waitForEvent("page");
-    // ✅ target="_blank" ensures a new window/tab opens
+    //  target="_blank" ensures a new window/tab opens
     await page.locator("a[target='_blank']").first().click();
     const popup = await popupPromise;
     await popup.waitForLoadState();
@@ -410,7 +410,7 @@ test.describe("Multiple Windows / Tabs", () => {
   }) => {
     // Open new window
     const newPagePromise = context.waitForEvent("page");
-    // ✅ target="_blank" ensures a new window/tab opens
+    //  target="_blank" ensures a new window/tab opens
     await page.locator("a[target='_blank']").first().click();
     const newPage = await newPagePromise;
     await newPage.waitForLoadState();
@@ -429,18 +429,18 @@ test.describe("Multiple Windows / Tabs", () => {
   });
 });
 
-// ============================================================
-// 📖 KEY TAKEAWAYS
+// ===========================================================
+//  KEY TAKEAWAYS
 // ============================================================
 //
-// ✅ IFrames:
+//  IFrames:
 //    - frameLocator('selector') → enter an iframe
 //    - Chain frameLocator() for nested iframes
 //    - No "switching" needed - just use different locators
 //    - Always wait for iframe to load
 //    - Use .first() when generic 'iframe' selector matches ads too
 //
-// ✅ Multiple Windows:
+//  Multiple Windows:
 //    - context.waitForEvent('page') → catch new windows
 //    - Start waiting BEFORE clicking
 //    - Use a[target='_blank'] to target links that open new tabs
@@ -449,7 +449,7 @@ test.describe("Multiple Windows / Tabs", () => {
 //    - page.bringToFront() → focus a window
 //    - Find windows by title/URL
 //
-// ✅ Best Practices:
+//  Best Practices:
 //    - Always clean up (close windows after test)
 //    - Wait for new pages to load
 //    - Use Page Object for window management

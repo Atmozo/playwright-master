@@ -1,5 +1,5 @@
 // ============================================================
-// 📖 LECTURE: Test Data Separation
+//  LECTURE: Test Data Separation
 // ============================================================
 // Never hard-code credentials inside test files.
 // Keep data here → change one place, all tests update.
@@ -9,7 +9,7 @@
 //  - Faker.js (random data)
 //  - API-created users (setup step)
 //
-// 📖 PLAYWRIGHT DOC - Test fixtures:
+//  PLAYWRIGHT DOC - Test fixtures:
 //   https://playwright.dev/docs/test-fixtures
 // ============================================================
 

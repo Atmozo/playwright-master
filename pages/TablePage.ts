@@ -1,7 +1,7 @@
 import { Page, Locator, expect } from "@playwright/test";
 
 // ============================================================
-// 📖 LECTURE: Dynamic Table Page Object
+// LECTURE: Dynamic Table Page Object
 // ============================================================
 // KEYS INIT:
 //  - Looping through table rows
@@ -69,7 +69,7 @@ export class TablePage {
   }
 
   // Get a specific row (0-indexed)
-  // 📖 .nth(index) → returns the nth matching element
+  //  .nth(index) → returns the nth matching element
   // https://playwright.dev/docs/api/class-locator#locator-nth
   getRow(index: number): Locator {
     return this.tableRows.nth(index);
@@ -90,7 +90,7 @@ export class TablePage {
   }
 
   // Get all table data as 2D array
-  // 📖 .all() → returns array of all matching locators
+  //  .all() → returns array of all matching locators
   // https://playwright.dev/docs/api/class-locator#locator-all
   async getAllTableData(): Promise<string[][]> {
     const rows = await this.tableRows.all();
@@ -212,7 +212,7 @@ export class TablePage {
 }
 
 // ============================================================
-// 📖 COMMON TABLE TESTING PATTERNS
+//  COMMON TABLE TESTING PATTERNS
 // ============================================================
 //
 // Pattern 1: Verify row count after filter

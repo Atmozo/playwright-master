@@ -1,7 +1,7 @@
 import { Page, Locator, FrameLocator, expect } from "@playwright/test";
 
 // ============================================================
-// 📖 LECTURE: IFrame Page Object
+//  LECTURE: IFrame Page Object
 // ============================================================
 // KEYS INIT:
 //  - frameLocator() → enter an iframe
@@ -31,7 +31,7 @@ export class IFramePage {
   // ── IFRAME ACCESS METHODS ────────────────────────────────
 
   // Get the iframe by selector
-  // 📖 CRITICAL: frameLocator() is the MODERN way to work with iframes.
+  //  CRITICAL: frameLocator() is the MODERN way to work with iframes.
   // Old way: page.frame('name') or page.frames()[0]
   // New way: page.frameLocator('selector')
   //
@@ -65,7 +65,7 @@ export class IFramePage {
   ) {
     const iframe = this.getIFrameBySelector(iframeSelector);
 
-    // 📖 CRITICAL: After getting frameLocator(), you use normal locators inside
+    //  CRITICAL: After getting frameLocator(), you use normal locators inside
     // iframe.locator('input') → finds input INSIDE the iframe
     await iframe.locator(inputSelector).fill(text);
   }
@@ -81,7 +81,7 @@ export class IFramePage {
     iframeSelector: string,
     selector: string,
   ): Promise<string> {
-    // ✅ Use .first() to avoid strict mode violation when multiple iframes match
+    //  Use .first() to avoid strict mode violation when multiple iframes match
     const iframe = this.page.frameLocator(iframeSelector).first();
     return (await iframe.locator(selector).textContent()) || "";
   }
@@ -95,7 +95,7 @@ export class IFramePage {
     innerIframeSelector: string,
     elementSelector: string,
   ) {
-    // 📖 CHAINING: page → outer iframe → inner iframe → element
+    //  CHAINING: page → outer iframe → inner iframe → element
     const outerFrame = this.page.frameLocator(outerIframeSelector);
     const innerFrame = outerFrame.frameLocator(innerIframeSelector);
     await innerFrame.locator(elementSelector).click();
@@ -105,7 +105,7 @@ export class IFramePage {
 
   async expectIFrameVisible(iframeSelector: string) {
     // The iframe element itself should be in the DOM
-    await expect(this.page.locator(iframeSelector).first()).toBeVisible(); // ✅ .first()
+    await expect(this.page.locator(iframeSelector).first()).toBeVisible(); //  .first()
   }
 
   async expectElementInIFrame(iframeSelector: string, elementSelector: string) {
@@ -120,7 +120,7 @@ export class IFramePage {
 
   // Wait for iframe to fully load
   async waitForIFrameToLoad(iframeSelector: string) {
-    // ✅ Use .first() to avoid strict mode violation — ads inject many iframes
+    //  Use .first() to avoid strict mode violation — ads inject many iframes
     await this.page
       .locator(iframeSelector)
       .first()
@@ -133,48 +133,48 @@ export class IFramePage {
 }
 
 // ============================================================
-// 📖 IFRAME CONCEPTS & COMMON MISTAKES
+//  IFRAME CONCEPTS & COMMON MISTAKES
 // ============================================================
 //
-// ❌ MISTAKE 1: Not switching into the iframe
+//  MISTAKE 1: Not switching into the iframe
 // ────────────────────────────────────────────
-// await page.click('#button-in-iframe');  // ❌ Won't work!
+// await page.click('#button-in-iframe');  //  Won't work!
 // // Playwright looks in main page, not inside iframe
 //
-// ✅ CORRECT:
+//  CORRECT:
 // const iframe = page.frameLocator('#my-iframe');
-// await iframe.locator('#button-in-iframe').click();  // ✅ Works!
+// await iframe.locator('#button-in-iframe').click();  //  Works!
 //
-// ❌ MISTAKE 2: Using deprecated page.frame()
-// ────────────────────────────────────────────
-// const frame = page.frame('frameName');  // ❌ Old API
+//  MISTAKE 2: Using deprecated page.frame()
+// ───────────────────────────────────────────
+// const frame = page.frame('frameName');  //  Old API
 // await frame.click('#button');
 //
-// ✅ CORRECT (modern way):
+//  CORRECT (modern way):
 // const iframe = page.frameLocator('iframe[name="frameName"]');
 // await iframe.locator('#button').click();
 //
-// ❌ MISTAKE 3: Not waiting for iframe to load
+//  MISTAKE 3: Not waiting for iframe to load
 // ─────────────────────────────────────────────
 // await page.goto('/page-with-iframe');
 // const iframe = page.frameLocator('iframe');
-// await iframe.click('#button');  // ❌ Might fail if iframe still loading
+// await iframe.click('#button');  //  Might fail if iframe still loading
 //
-// ✅ CORRECT:
+//  CORRECT:
 // await page.goto('/page-with-iframe');
 // const iframe = page.frameLocator('iframe');
 // await iframe.locator('body').waitFor();  // Wait for iframe content
 // await iframe.click('#button');
 //
-// ❌ MISTAKE 4: Not using .first() when multiple iframes match
+//  MISTAKE 4: Not using .first() when multiple iframes match
 // ─────────────────────────────────────────────────────────────
-// await page.locator('iframe').waitFor();  // ❌ Strict mode: matches 10+ iframes (ads!)
+// await page.locator('iframe').waitFor();  //  Strict mode: matches 10+ iframes (ads!)
 //
-// ✅ CORRECT:
-// await page.locator('iframe').first().waitFor();  // ✅ Targets first match only
+//  CORRECT:
+// await page.locator('iframe').first().waitFor();  // Targets first match only
 //
 // ============================================================
-// 📖 REAL-WORLD IFRAME PATTERNS
+//  REAL-WORLD IFRAME PATTERNS
 // ============================================================
 //
 // Pattern 1: YouTube embed

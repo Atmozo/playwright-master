@@ -2,7 +2,7 @@ import { Page, expect, Download } from "@playwright/test";
 import * as fs from "fs";
 
 // ============================================================
-// 📖 LECTURE: File Download Page Object
+//  LECTURE: File Download Page Object
 // ============================================================
 //  LEARN:
 //  - waitForEvent('download') → intercept downloads
@@ -34,7 +34,7 @@ export class FileDownloadPage {
   // Download a file by clicking its link
   // Returns the Download object for further assertions
   async downloadFileByName(filename: string): Promise<Download> {
-    // 📖 CRITICAL PATTERN:
+    //  CRITICAL PATTERN:
     // Start waiting for download BEFORE clicking the link.
     // If you click first, you might miss the event.
     const downloadPromise = this.page.waitForEvent("download");
@@ -54,7 +54,7 @@ export class FileDownloadPage {
     const download = await this.downloadFileByName(filename);
 
     // saveAs() → saves the download to a custom location
-    // 📖 https://playwright.dev/docs/api/class-download#download-save-as
+    //  https://playwright.dev/docs/api/class-download#download-save-as
     await download.saveAs(savePath);
   }
 
@@ -135,7 +135,7 @@ export class FileDownloadPage {
 }
 
 // ============================================================
-// 📖 ADVANCED PATTERNS
+//  ADVANCED PATTERNS
 // ============================================================
 //
 // Pattern 1: Verify download metadata

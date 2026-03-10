@@ -1,7 +1,7 @@
 import { Page, BrowserContext, expect } from "@playwright/test";
 
 // ============================================================
-// 📖 LECTURE: Multiple Windows/Tabs Page Object
+//  LECTURE: Multiple Windows/Tabs Page Object
 // ============================================================
 // WHAT YOU'LL LEARN:
 //  - context.waitForEvent('page') → catch new windows/tabs
@@ -35,7 +35,7 @@ export class WindowsPage {
   // Click a link that opens in a new tab/window
   // Returns the new page object
   async clickLinkOpeningNewWindow(linkText: string): Promise<Page> {
-    // 📖 CRITICAL PATTERN:
+    //  CRITICAL PATTERN:
     // Start listening for the new page BEFORE clicking the link.
     // context.waitForEvent('page') → waits for a new page to open
     //
@@ -115,7 +115,7 @@ export class WindowsPage {
     const pages = this.context.pages();
 
     for (const page of pages) {
-      const url = page.url();
+      onst url = page.url();
       if (typeof urlPattern === "string") {
         if (url.includes(urlPattern)) return page;
       } else {
@@ -157,7 +157,7 @@ export class WindowsPage {
 // CONCEPT 2: When a new window opens
 // ───────────────────────────────────
 // ============================================================
-// 📖 COMMON PATTERNS
+//  COMMON PATTERNS
 // ============================================================
 //
 // Pattern 1: Click link, work in new tab, close it
@@ -171,46 +171,46 @@ export class WindowsPage {
 // Pattern 5: Download from new window
 // ────────────────────────────────────
 // ============================================================
-// 🚨 COMMON PITFALLS
+//  COMMON PITFALLS
 // ============================================================
 //
-// ❌ MISTAKE 1: Not waiting for new page
+//  MISTAKE 1: Not waiting for new page
 // ───────────────────────────────────────
 // await page.click('a[target="_blank"]');
-// const newPage = context.pages()[1];  // ❌ Might be undefined!
-// await newPage.click('#button');      // ❌ Error!
+// const newPage = context.pages()[1];  //  Might be undefined!
+// await newPage.click('#button');      //  Error!
 //
-// ✅ CORRECT:
+//  CORRECT:
 // const newPagePromise = context.waitForEvent('page');
 // await page.click('a[target="_blank"]');
-// const newPage = await newPagePromise;  // ✅ Guaranteed to exist
+// const newPage = await newPagePromise;  //  Guaranteed to exist
 // await newPage.waitForLoadState();
 //
-// ❌ MISTAKE 2: Working in wrong window
+//  MISTAKE 2: Working in wrong window
 // ──────────────────────────────────────
 // await page1.click('#button');  // You think you're in page1
 // // But the test is actually looking at page2 now
 //
-// ✅ CORRECT:
+//  CORRECT:
 // await page1.bringToFront();  // Explicitly switch focus
 // await page1.click('#button');
 //
-// ❌ MISTAKE 3: Not closing windows after test
+//  MISTAKE 3: Not closing windows after test
 // ─────────────────────────────────────────────
 // test('multiple windows', async ({ page, context }) => {
 //   const page2 = await context.newPage();
 //   const page3 = await context.newPage();
 //   // ... test logic ...
-//   // ❌ Didn't close page2, page3 → they leak into next test!
+//   //  Didn't close page2, page3 → they leak into next test!
 // });
 //
-// ✅ CORRECT:
+// CORRECT:
 // test('multiple windows', async ({ page, context }) => {
 //   const page2 = await context.newPage();
 //   const page3 = await context.newPage();
 //   // ... test logic ...
 //   await page2.close();
-//   await page3.close();  // ✅ Clean up
+//   await page3.close();  //  Clean up
 // });
 //
 // ============================================================

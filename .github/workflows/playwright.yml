@@ -1,13 +1,13 @@
 # ============================================================
-# 🎭 PLAYWRIGHT TESTS - PRO WORKFLOW
+# PLAYWRIGHT TESTS - WORKFLOW
 # ============================================================
-# ✅ Runs on push/PR to main & master
-# ✅ Runs every night at 2 AM UTC
-# ✅ Manual trigger with environment selection
-# ✅ Injects all .env secrets securely
-# ✅ Sends HTML email report on completion
-# ✅ Sends Slack notification on failure
-# ✅ Uploads artifacts for 30 days
+#  Runs on push/PR to main & master
+#  Runs every night at 2 AM UTC
+#  Manual trigger with environment selection
+#  Injects all .env secrets securely
+#  Sends HTML email report on completion
+#  Sends Slack notification on failure
+#  Uploads artifacts for 30 days
 # ============================================================
 
 name: Playwright Tests
@@ -46,28 +46,30 @@ jobs:
       # ────────────────────────────────────────────────────────
       # Setup
       # ────────────────────────────────────────────────────────
-      - name: 📥 Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🟢 Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
 
-      - name: 📦 Install dependencies
+      - name: Install dependencies
         run: npm ci
 
-      - name: 🎭 Install Playwright browsers
+      - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
       # ────────────────────────────────────────────────────────
       # Run Tests
       # ────────────────────────────────────────────────────────
-      - name: 🧪 Run Playwright tests
+      - name: Run Playwright tests
         id: tests
         continue-on-error: true
-        run: npx playwright test --workers=4
+        run: npx playwright test --workers=4 --reporter=html,json
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/results.json
         env:
           OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
           WEATHER_BASE_URL: ${{ secrets.WEATHER_BASE_URL }}
@@ -77,12 +79,47 @@ jobs:
           CI: true
 
       # ────────────────────────────────────────────────────────
-      # Summary
+      # Parse Results JSON → expose counts as step outputs
       # ────────────────────────────────────────────────────────
-      - name: 📊 Generate test summary
+      - name: Parse test results
+        id: results
         if: always()
         run: |
-          echo "## 🎭 Playwright Test Results" >> $GITHUB_STEP_SUMMARY
+          RESULTS_FILE="test-results/results.json"
+
+          if [ -f "$RESULTS_FILE" ]; then
+            TOTAL=$(jq '[.suites[].specs[].tests[]] | length' "$RESULTS_FILE" 2>/dev/null || echo 0)
+            PASSED=$(jq '[.suites[].specs[].tests[] | select(.results[0].status == "passed")] | length' "$RESULTS_FILE" 2>/dev/null || echo 0)
+            FAILED=$(jq '[.suites[].specs[].tests[] | select(.results[0].status == "failed")] | length' "$RESULTS_FILE" 2>/dev/null || echo 0)
+            SKIPPED=$(jq '[.suites[].specs[].tests[] | select(.results[0].status == "skipped")] | length' "$RESULTS_FILE" 2>/dev/null || echo 0)
+            FLAKY=$(jq '[.suites[].specs[].tests[] | select(.results[0].status == "flaky")] | length' "$RESULTS_FILE" 2>/dev/null || echo 0)
+          else
+            TOTAL=0; PASSED=0; FAILED=0; SKIPPED=0; FLAKY=0
+          fi
+
+          echo "total=$TOTAL"     >> $GITHUB_OUTPUT
+          echo "passed=$PASSED"   >> $GITHUB_OUTPUT
+          echo "failed=$FAILED"   >> $GITHUB_OUTPUT
+          echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
+          echo "flaky=$FLAKY"     >> $GITHUB_OUTPUT
+
+          # Pass rate (avoid divide-by-zero)
+          if [ "$TOTAL" -gt 0 ]; then
+            RATE=$(echo "scale=1; $PASSED * 100 / $TOTAL" | bc)
+          else
+            RATE="0.0"
+          fi
+          echo "pass_rate=$RATE" >> $GITHUB_OUTPUT
+
+          echo "Parsed: total=$TOTAL passed=$PASSED failed=$FAILED skipped=$SKIPPED flaky=$FLAKY rate=$RATE%"
+
+      # ────────────────────────────────────────────────────────
+      # Summary
+      # ────────────────────────────────────────────────────────
+      - name: Generate test summary
+        if: always()
+        run: |
+          echo "## Playwright Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Date:** $(date)" >> $GITHUB_STEP_SUMMARY
           echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
@@ -93,7 +130,7 @@ jobs:
       # ────────────────────────────────────────────────────────
       # Upload Artifacts
       # ────────────────────────────────────────────────────────
-      - name: 📤 Upload test report
+      - name: Upload test report
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -103,7 +140,7 @@ jobs:
             ${{ env.REPORTS_DIR }}/
           retention-days: 30
 
-      - name: 📹 Upload failure videos
+      - name: Upload failure videos
         if: failure()
         uses: actions/upload-artifact@v4
         with:
@@ -114,7 +151,7 @@ jobs:
       # ────────────────────────────────────────────────────────
       # Zip Report for Email
       # ────────────────────────────────────────────────────────
-      - name: 📦 Zip report for email
+      - name: Zip report for email
         if: always()
         run: |
           cd ${{ env.REPORTS_DIR }}
@@ -123,7 +160,7 @@ jobs:
       # ────────────────────────────────────────────────────────
       # Email Notification
       # ────────────────────────────────────────────────────────
-      - name: 📧 Send email notification
+      - name: Send email notification
         if: always()
         uses: dawidd6/action-send-mail@v3
         with:
@@ -132,53 +169,248 @@ jobs:
           secure: true
           username: ${{ secrets.GMAIL_USERNAME }}
           password: ${{ secrets.GMAIL_APP_PASSWORD }}
-          subject: |
-            ${{ steps.tests.outcome == 'success' && '✅' || '❌' }} Playwright Tests - Run #${{ github.run_number }} - ${{ steps.tests.outcome }}
+          subject: >
+            ${{ steps.tests.outcome == 'success' && '[PASSED]' || '[FAILED]' }}
+            Playwright · Run #${{ github.run_number }} · ${{ github.ref_name }}
           to: ${{ secrets.NOTIFICATION_EMAIL }}
-          from: Playwright Tests
+          from: "Playwright CI <${{ secrets.GMAIL_USERNAME }}>"
           html_body: |
             <!DOCTYPE html>
-            <html>
+            <html lang="en">
             <head>
-              <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .header { background: ${{ steps.tests.outcome == 'success' && '#4CAF50' || '#f44336' }}; color: white; padding: 20px; border-radius: 5px; }
-                .content { background: #f9f9f9; padding: 20px; margin-top: 20px; border-radius: 5px; }
-                .footer { margin-top: 20px; font-size: 12px; color: #666; }
-                .button { background: #2196F3; color: white; padding: 10px 20px; text-decoration: none; border-radius: 3px; display: inline-block; margin-top: 10px; margin-right: 8px; }
-                .status { font-size: 24px; font-weight: bold; }
-              </style>
+              <meta charset="UTF-8" />
+              <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+              <title>Playwright Test Report</title>
             </head>
-            <body>
-              <div class="container">
-                <div class="header">
-                  <h2>🎭 Playwright Test Results</h2>
-                  <p class="status">${{ steps.tests.outcome == 'success' && '✅ ALL TESTS PASSED' || '❌ TESTS FAILED' }}</p>
-                </div>
-                <div class="content">
-                  <h3>Run Details</h3>
-                  <ul>
-                    <li><strong>Run Number:</strong> ${{ github.run_number }}</li>
-                    <li><strong>Trigger:</strong> ${{ github.event_name }}</li>
-                    <li><strong>Environment:</strong> ${{ github.event.inputs.environment || 'staging' }}</li>
-                    <li><strong>Branch:</strong> ${{ github.ref_name }}</li>
-                    <li><strong>Commit:</strong> ${{ github.sha }}</li>
-                  </ul>
-                  <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" class="button">View Full Report</a>
-                  <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" class="button">Download Artifacts</a>
-                </div>
-                <div class="footer">
-                  <p>Automated message from GitHub Actions · ${{ github.repository }}</p>
-                </div>
-              </div>
+            <body style="margin:0;padding:0;background-color:#0d0d0d;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+
+              <!-- Outer wrapper -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#0d0d0d;padding:40px 16px;">
+                <tr>
+                  <td align="center">
+
+                    <!-- Card -->
+                    <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background-color:#141414;border-radius:12px;overflow:hidden;border:1px solid #222;">
+
+                      <!-- Status bar -->
+                      <tr>
+                        <td style="height:4px;background:${{ steps.tests.outcome == 'success' && 'linear-gradient(90deg,#00c896,#00e5b0)' || 'linear-gradient(90deg,#e03c3c,#ff6b6b)' }};"></td>
+                      </tr>
+
+                      <!-- Header -->
+                      <tr>
+                        <td style="padding:36px 40px 28px;border-bottom:1px solid #222;">
+                          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                              <td>
+                                <!-- Wordmark -->
+                                <p style="margin:0 0 16px;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#555;font-weight:600;">Playwright CI</p>
+                                <!-- Status badge -->
+                                <table cellpadding="0" cellspacing="0" border="0">
+                                  <tr>
+                                    <td style="background:${{ steps.tests.outcome == 'success' && 'rgba(0,200,150,0.12)' || 'rgba(224,60,60,0.12)' }};border:1px solid ${{ steps.tests.outcome == 'success' && 'rgba(0,200,150,0.3)' || 'rgba(224,60,60,0.3)' }};border-radius:6px;padding:6px 14px;">
+                                      <span style="font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${{ steps.tests.outcome == 'success' && '#00c896' || '#e03c3c' }};">
+                                        ${{ steps.tests.outcome == 'success' && 'All Tests Passed' || 'Tests Failed' }}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                </table>
+                                <!-- Headline -->
+                                <h1 style="margin:16px 0 4px;font-size:26px;font-weight:700;color:#f0f0f0;letter-spacing:-0.5px;line-height:1.2;">
+                                  Run <span style="color:${{ steps.tests.outcome == 'success' && '#00c896' || '#e03c3c' }};">#${{ github.run_number }}</span>
+                                </h1>
+                                <p style="margin:0;font-size:13px;color:#555;">
+                                  ${{ github.repository }} &nbsp;·&nbsp; ${{ github.ref_name }}
+                                </p>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+
+                      <!-- Test stats row -->
+                      <tr>
+                        <td style="padding:28px 40px 0;border-bottom:0;">
+                          <p style="margin:0 0 12px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;font-weight:600;">Test Results</p>
+                          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                              <!-- Total -->
+                              <td width="25%" style="padding-right:8px;vertical-align:top;">
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                  <tr>
+                                    <td style="padding:14px 12px;background:#1a1a1a;border-radius:8px;border:1px solid #222;text-align:center;">
+                                      <p style="margin:0 0 4px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#444;font-weight:600;">Total</p>
+                                      <p style="margin:0;font-size:22px;font-weight:700;color:#f0f0f0;">${{ steps.results.outputs.total }}</p>
+                                    </td>
+                                  </tr>
+                                </table>
+                              </td>
+                              <!-- Passed -->
+                              <td width="25%" style="padding-right:8px;vertical-align:top;">
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                  <tr>
+                                    <td style="padding:14px 12px;background:rgba(0,200,150,0.07);border-radius:8px;border:1px solid rgba(0,200,150,0.18);text-align:center;">
+                                      <p style="margin:0 0 4px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#00a07a;font-weight:600;">Passed</p>
+                                      <p style="margin:0;font-size:22px;font-weight:700;color:#00c896;">${{ steps.results.outputs.passed }}</p>
+                                    </td>
+                                  </tr>
+                                </table>
+                              </td>
+                              <!-- Failed -->
+                              <td width="25%" style="padding-right:8px;vertical-align:top;">
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                  <tr>
+                                    <td style="padding:14px 12px;background:rgba(224,60,60,0.07);border-radius:8px;border:1px solid rgba(224,60,60,0.18);text-align:center;">
+                                      <p style="margin:0 0 4px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#a03030;font-weight:600;">Failed</p>
+                                      <p style="margin:0;font-size:22px;font-weight:700;color:#e03c3c;">${{ steps.results.outputs.failed }}</p>
+                                    </td>
+                                  </tr>
+                                </table>
+                              </td>
+                              <!-- Skipped / Flaky -->
+                              <td width="25%" style="vertical-align:top;">
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                  <tr>
+                                    <td style="padding:14px 12px;background:#1a1a1a;border-radius:8px;border:1px solid #222;text-align:center;">
+                                      <p style="margin:0 0 4px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#444;font-weight:600;">Skipped</p>
+                                      <p style="margin:0;font-size:22px;font-weight:700;color:#888;">${{ steps.results.outputs.skipped }}</p>
+                                    </td>
+                                  </tr>
+                                </table>
+                              </td>
+                            </tr>
+                          </table>
+
+                          <!-- Pass rate bar -->
+                          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:16px;">
+                            <tr>
+                              <td>
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#1e1e1e;border-radius:4px;overflow:hidden;height:6px;">
+                                  <tr>
+                                    <td width="${{ steps.results.outputs.pass_rate }}%" style="background:linear-gradient(90deg,#00c896,#00e5b0);height:6px;border-radius:4px;"></td>
+                                    <td style="height:6px;"></td>
+                                  </tr>
+                                </table>
+                                <p style="margin:6px 0 0;font-size:11px;color:#555;text-align:right;">${{ steps.results.outputs.pass_rate }}% pass rate</p>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+
+                      <!-- Divider -->
+                      <tr><td style="padding:20px 40px 0;"><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="border-bottom:1px solid #222;"></td></tr></table></td></tr>
+
+                      <!-- Metadata grid -->
+                      <tr>
+                        <td style="padding:24px 40px;border-bottom:1px solid #222;">
+                          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                              <!-- Left column -->
+                              <td width="50%" style="vertical-align:top;padding-right:12px;">
+
+                                <!-- Trigger -->
+                                <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;width:100%;">
+                                  <tr>
+                                    <td style="padding:12px 16px;background:#1a1a1a;border-radius:8px;border:1px solid #222;">
+                                      <p style="margin:0 0 4px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;font-weight:600;">Trigger</p>
+                                      <p style="margin:0;font-size:14px;color:#ccc;font-weight:500;">${{ github.event_name }}</p>
+                                    </td>
+                                  </tr>
+                                </table>
+
+                                <!-- Environment -->
+                                <table cellpadding="0" cellspacing="0" border="0" style="width:100%;">
+                                  <tr>
+                                    <td style="padding:12px 16px;background:#1a1a1a;border-radius:8px;border:1px solid #222;">
+                                      <p style="margin:0 0 4px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;font-weight:600;">Environment</p>
+                                      <p style="margin:0;font-size:14px;color:#ccc;font-weight:500;">${{ github.event.inputs.environment || 'staging' }}</p>
+                                    </td>
+                                  </tr>
+                                </table>
+
+                              </td>
+
+                              <!-- Right column -->
+                              <td width="50%" style="vertical-align:top;padding-left:12px;">
+
+                                <!-- Branch -->
+                                <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;width:100%;">
+                                  <tr>
+                                    <td style="padding:12px 16px;background:#1a1a1a;border-radius:8px;border:1px solid #222;">
+                                      <p style="margin:0 0 4px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;font-weight:600;">Branch</p>
+                                      <p style="margin:0;font-size:14px;color:#ccc;font-weight:500;">${{ github.ref_name }}</p>
+                                    </td>
+                                  </tr>
+                                </table>
+
+                                <!-- Commit -->
+                                <table cellpadding="0" cellspacing="0" border="0" style="width:100%;">
+                                  <tr>
+                                    <td style="padding:12px 16px;background:#1a1a1a;border-radius:8px;border:1px solid #222;">
+                                      <p style="margin:0 0 4px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;font-weight:600;">Commit</p>
+                                      <p style="margin:0;font-size:13px;color:#ccc;font-weight:500;font-family:'Courier New',monospace;">${{ github.sha }}</p>
+                                    </td>
+                                  </tr>
+                                </table>
+
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+
+                      <!-- CTA Buttons -->
+                      <tr>
+                        <td style="padding:28px 40px 32px;">
+                          <table cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                              <td style="padding-right:12px;">
+                                <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                                   style="display:inline-block;padding:12px 22px;background:${{ steps.tests.outcome == 'success' && '#00c896' || '#e03c3c' }};color:#fff;font-size:13px;font-weight:700;letter-spacing:0.5px;text-decoration:none;border-radius:7px;">
+                                  View Run Details
+                                </a>
+                              </td>
+                              <td>
+                                <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+                                   style="display:inline-block;padding:12px 22px;background:transparent;color:#888;font-size:13px;font-weight:600;letter-spacing:0.5px;text-decoration:none;border-radius:7px;border:1px solid #2e2e2e;">
+                                  Download Artifacts
+                                </a>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+
+                      <!-- Footer -->
+                      <tr>
+                        <td style="padding:18px 40px;background:#0f0f0f;border-top:1px solid #1e1e1e;">
+                          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                              <td>
+                                <p style="margin:0;font-size:11px;color:#3a3a3a;">
+                                  Automated by GitHub Actions &nbsp;·&nbsp; ${{ github.repository }} &nbsp;·&nbsp; Run #${{ github.run_number }}
+                                </p>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+
+                    </table>
+                    <!-- /Card -->
+
+                  </td>
+                </tr>
+              </table>
+
             </body>
             </html>
 
       # ────────────────────────────────────────────────────────
       # Fail the job if tests failed (after notifications sent)
       # ────────────────────────────────────────────────────────
-      - name: ✅ Assert test outcome
+      - name: Assert test outcome
         if: always()
         run: |
           if [ "${{ steps.tests.outcome }}" != "success" ]; then
@@ -187,7 +419,7 @@ jobs:
           fi
 
 # ============================================================
-# 📝 SECRETS NEEDED (Settings → Secrets and variables → Actions)
+# SECRETS NEEDED (Settings → Secrets and variables → Actions)
 # ============================================================
 #
 #  FROM YOUR .env:
@@ -203,4 +435,3 @@ jobs:
 #  GMAIL_APP_PASSWORD      → 16-char app password from
 #                            https://myaccount.google.com/apppasswords
 #  NOTIFICATION_EMAIL      → recipient email address
-

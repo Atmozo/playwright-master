@@ -1,7 +1,7 @@
 import { Page, Locator, expect } from "@playwright/test";
 
 // ============================================================
-// 📖 LECTURE: Drag & Drop Page Object
+//  LECTURE: Drag & Drop Page Object
 // ============================================================
 // KEYS INIT:
 //  - dragTo() → the modern drag-drop method
@@ -38,7 +38,7 @@ export class DragDropPage {
   // ── DRAG & DROP METHODS ──────────────────────────────────
 
   // Method 1: dragTo() - PREFERRED (Playwright's built-in)
-  // 📖 https://playwright.dev/docs/api/class-locator#locator-drag-to
+  //  https://playwright.dev/docs/api/class-locator#locator-drag-to
   async dragToTarget(source: Locator, target: Locator) {
     // This is the EASIEST way in Playwright
     // It handles all the mouse events automatically
@@ -71,8 +71,8 @@ export class DragDropPage {
     await this.page.mouse.move(sourceX, sourceY);
     await this.page.mouse.down();
     await this.page.waitForTimeout(100);
-    await this.page.mouse.move(sourceX + 5, sourceY + 5, { steps: 5 }); // ✅ initiate drag
-    await this.page.mouse.move(targetX, targetY, { steps: 20 }); // ✅ fire dragover
+    await this.page.mouse.move(sourceX + 5, sourceY + 5, { steps: 5 }); //  initiate drag
+    await this.page.mouse.move(targetX, targetY, { steps: 20 }); //  fire dragover
     await this.page.mouse.up();
   }
   // Method 3: HTML5 drag-drop (DataTransfer API)
@@ -129,7 +129,7 @@ export class DragDropPage {
 }
 
 // ============================================================
-// 📖 DRAG & DROP CONCEPTS
+//  DRAG & DROP CONCEPTS
 // ============================================================
 //
 // CONCEPT 1: Two types of drag-drop
@@ -151,7 +151,7 @@ export class DragDropPage {
 //  4. Check if element is actually draggable
 //
 // ============================================================
-// 📖 COMMON PATTERNS
+//  COMMON PATTERNS
 // ============================================================
 //
 // Pattern 1: Kanban board (drag task between columns)
@@ -169,7 +169,7 @@ export class DragDropPage {
 // await expect(cart).toContainText('Laptop');
 //
 // ============================================================
-// 🚨 TROUBLESHOOTING DRAG & DROP
+//  TROUBLESHOOTING DRAG & DROP
 // ============================================================
 //
 // Issue 1: dragTo() does nothing

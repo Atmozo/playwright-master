@@ -158,7 +158,7 @@ test.describe("DogsAPITests - Get a list of dog breeds", () => {
 }); // ← closes test.describe
 
 // ============================================================
-// 📊 COMPARISON SUMMARY - All 11 Tests Converted
+//  COMPARISON SUMMARY - All 11 Tests Converted
 // ============================================================
 //
 // Java Structure                | Playwright Equivalent
