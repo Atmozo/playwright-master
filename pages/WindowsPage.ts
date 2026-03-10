@@ -115,7 +115,7 @@ export class WindowsPage {
     const pages = this.context.pages();
 
     for (const page of pages) {
-      onst url = page.url();
+      const url = page.url();
       if (typeof urlPattern === "string") {
         if (url.includes(urlPattern)) return page;
       } else {
