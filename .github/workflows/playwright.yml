@@ -6,7 +6,6 @@
 #  Manual trigger with environment selection
 #  Injects all .env secrets securely
 #  Sends HTML email report on completion
-#  Sends Slack notification on failure
 #  Uploads artifacts for 30 days
 # ============================================================
 
@@ -70,7 +69,6 @@ jobs:
         run: npx playwright test --workers=4 --reporter=html,json
         env:
           PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/results.json
-        env:
           OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
           WEATHER_BASE_URL: ${{ secrets.WEATHER_BASE_URL }}
           REQRES_BASE_URL: ${{ secrets.REQRES_BASE_URL }}
@@ -183,13 +181,9 @@ jobs:
               <title>Playwright Test Report</title>
             </head>
             <body style="margin:0;padding:0;background-color:#0d0d0d;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-
-              <!-- Outer wrapper -->
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#0d0d0d;padding:40px 16px;">
                 <tr>
                   <td align="center">
-
-                    <!-- Card -->
                     <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background-color:#141414;border-radius:12px;overflow:hidden;border:1px solid #222;">
 
                       <!-- Status bar -->
@@ -200,100 +194,74 @@ jobs:
                       <!-- Header -->
                       <tr>
                         <td style="padding:36px 40px 28px;border-bottom:1px solid #222;">
-                          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                          <p style="margin:0 0 16px;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#555;font-weight:600;">Playwright CI</p>
+                          <table cellpadding="0" cellspacing="0" border="0">
                             <tr>
-                              <td>
-                                <!-- Wordmark -->
-                                <p style="margin:0 0 16px;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#555;font-weight:600;">Playwright CI</p>
-                                <!-- Status badge -->
-                                <table cellpadding="0" cellspacing="0" border="0">
-                                  <tr>
-                                    <td style="background:${{ steps.tests.outcome == 'success' && 'rgba(0,200,150,0.12)' || 'rgba(224,60,60,0.12)' }};border:1px solid ${{ steps.tests.outcome == 'success' && 'rgba(0,200,150,0.3)' || 'rgba(224,60,60,0.3)' }};border-radius:6px;padding:6px 14px;">
-                                      <span style="font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${{ steps.tests.outcome == 'success' && '#00c896' || '#e03c3c' }};">
-                                        ${{ steps.tests.outcome == 'success' && 'All Tests Passed' || 'Tests Failed' }}
-                                      </span>
-                                    </td>
-                                  </tr>
-                                </table>
-                                <!-- Headline -->
-                                <h1 style="margin:16px 0 4px;font-size:26px;font-weight:700;color:#f0f0f0;letter-spacing:-0.5px;line-height:1.2;">
-                                  Run <span style="color:${{ steps.tests.outcome == 'success' && '#00c896' || '#e03c3c' }};">#${{ github.run_number }}</span>
-                                </h1>
-                                <p style="margin:0;font-size:13px;color:#555;">
-                                  ${{ github.repository }} &nbsp;·&nbsp; ${{ github.ref_name }}
-                                </p>
+                              <td style="background:${{ steps.tests.outcome == 'success' && 'rgba(0,200,150,0.12)' || 'rgba(224,60,60,0.12)' }};border:1px solid ${{ steps.tests.outcome == 'success' && 'rgba(0,200,150,0.3)' || 'rgba(224,60,60,0.3)' }};border-radius:6px;padding:6px 14px;">
+                                <span style="font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${{ steps.tests.outcome == 'success' && '#00c896' || '#e03c3c' }};">
+                                  ${{ steps.tests.outcome == 'success' && 'All Tests Passed' || 'Tests Failed' }}
+                                </span>
                               </td>
                             </tr>
                           </table>
+                          <h1 style="margin:16px 0 4px;font-size:26px;font-weight:700;color:#f0f0f0;letter-spacing:-0.5px;line-height:1.2;">
+                            Run <span style="color:${{ steps.tests.outcome == 'success' && '#00c896' || '#e03c3c' }};">#${{ github.run_number }}</span>
+                          </h1>
+                          <p style="margin:0;font-size:13px;color:#555;">${{ github.repository }} &nbsp;·&nbsp; ${{ github.ref_name }}</p>
                         </td>
                       </tr>
 
-                      <!-- Test stats row -->
+                      <!-- Test stats -->
                       <tr>
-                        <td style="padding:28px 40px 0;border-bottom:0;">
+                        <td style="padding:28px 40px 0;">
                           <p style="margin:0 0 12px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;font-weight:600;">Test Results</p>
                           <table width="100%" cellpadding="0" cellspacing="0" border="0">
                             <tr>
-                              <!-- Total -->
                               <td width="25%" style="padding-right:8px;vertical-align:top;">
-                                <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                                  <tr>
-                                    <td style="padding:14px 12px;background:#1a1a1a;border-radius:8px;border:1px solid #222;text-align:center;">
-                                      <p style="margin:0 0 4px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#444;font-weight:600;">Total</p>
-                                      <p style="margin:0;font-size:22px;font-weight:700;color:#f0f0f0;">${{ steps.results.outputs.total }}</p>
-                                    </td>
-                                  </tr>
-                                </table>
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+                                  <td style="padding:14px 12px;background:#1a1a1a;border-radius:8px;border:1px solid #222;text-align:center;">
+                                    <p style="margin:0 0 4px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#444;font-weight:600;">Total</p>
+                                    <p style="margin:0;font-size:22px;font-weight:700;color:#f0f0f0;">${{ steps.results.outputs.total }}</p>
+                                  </td>
+                                </tr></table>
                               </td>
-                              <!-- Passed -->
                               <td width="25%" style="padding-right:8px;vertical-align:top;">
-                                <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                                  <tr>
-                                    <td style="padding:14px 12px;background:rgba(0,200,150,0.07);border-radius:8px;border:1px solid rgba(0,200,150,0.18);text-align:center;">
-                                      <p style="margin:0 0 4px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#00a07a;font-weight:600;">Passed</p>
-                                      <p style="margin:0;font-size:22px;font-weight:700;color:#00c896;">${{ steps.results.outputs.passed }}</p>
-                                    </td>
-                                  </tr>
-                                </table>
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+                                  <td style="padding:14px 12px;background:rgba(0,200,150,0.07);border-radius:8px;border:1px solid rgba(0,200,150,0.18);text-align:center;">
+                                    <p style="margin:0 0 4px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#00a07a;font-weight:600;">Passed</p>
+                                    <p style="margin:0;font-size:22px;font-weight:700;color:#00c896;">${{ steps.results.outputs.passed }}</p>
+                                  </td>
+                                </tr></table>
                               </td>
-                              <!-- Failed -->
                               <td width="25%" style="padding-right:8px;vertical-align:top;">
-                                <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                                  <tr>
-                                    <td style="padding:14px 12px;background:rgba(224,60,60,0.07);border-radius:8px;border:1px solid rgba(224,60,60,0.18);text-align:center;">
-                                      <p style="margin:0 0 4px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#a03030;font-weight:600;">Failed</p>
-                                      <p style="margin:0;font-size:22px;font-weight:700;color:#e03c3c;">${{ steps.results.outputs.failed }}</p>
-                                    </td>
-                                  </tr>
-                                </table>
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+                                  <td style="padding:14px 12px;background:rgba(224,60,60,0.07);border-radius:8px;border:1px solid rgba(224,60,60,0.18);text-align:center;">
+                                    <p style="margin:0 0 4px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#a03030;font-weight:600;">Failed</p>
+                                    <p style="margin:0;font-size:22px;font-weight:700;color:#e03c3c;">${{ steps.results.outputs.failed }}</p>
+                                  </td>
+                                </tr></table>
                               </td>
-                              <!-- Skipped / Flaky -->
                               <td width="25%" style="vertical-align:top;">
-                                <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                                  <tr>
-                                    <td style="padding:14px 12px;background:#1a1a1a;border-radius:8px;border:1px solid #222;text-align:center;">
-                                      <p style="margin:0 0 4px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#444;font-weight:600;">Skipped</p>
-                                      <p style="margin:0;font-size:22px;font-weight:700;color:#888;">${{ steps.results.outputs.skipped }}</p>
-                                    </td>
-                                  </tr>
-                                </table>
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+                                  <td style="padding:14px 12px;background:#1a1a1a;border-radius:8px;border:1px solid #222;text-align:center;">
+                                    <p style="margin:0 0 4px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#444;font-weight:600;">Skipped</p>
+                                    <p style="margin:0;font-size:22px;font-weight:700;color:#888;">${{ steps.results.outputs.skipped }}</p>
+                                  </td>
+                                </tr></table>
                               </td>
                             </tr>
                           </table>
-
                           <!-- Pass rate bar -->
                           <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:16px;">
-                            <tr>
-                              <td>
-                                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#1e1e1e;border-radius:4px;overflow:hidden;height:6px;">
-                                  <tr>
-                                    <td width="${{ steps.results.outputs.pass_rate }}%" style="background:linear-gradient(90deg,#00c896,#00e5b0);height:6px;border-radius:4px;"></td>
-                                    <td style="height:6px;"></td>
-                                  </tr>
-                                </table>
-                                <p style="margin:6px 0 0;font-size:11px;color:#555;text-align:right;">${{ steps.results.outputs.pass_rate }}% pass rate</p>
-                              </td>
-                            </tr>
+                            <tr><td>
+                              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#1e1e1e;border-radius:4px;overflow:hidden;height:6px;">
+                                <tr>
+                                  <td width="${{ steps.results.outputs.pass_rate }}%" style="background:linear-gradient(90deg,#00c896,#00e5b0);height:6px;border-radius:4px;"></td>
+                                  <td style="height:6px;"></td>
+                                </tr>
+                              </table>
+                              <p style="margin:6px 0 0;font-size:11px;color:#555;text-align:right;">${{ steps.results.outputs.pass_rate }}% pass rate</p>
+                            </td></tr>
                           </table>
                         </td>
                       </tr>
@@ -306,54 +274,33 @@ jobs:
                         <td style="padding:24px 40px;border-bottom:1px solid #222;">
                           <table width="100%" cellpadding="0" cellspacing="0" border="0">
                             <tr>
-                              <!-- Left column -->
                               <td width="50%" style="vertical-align:top;padding-right:12px;">
-
-                                <!-- Trigger -->
-                                <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;width:100%;">
-                                  <tr>
-                                    <td style="padding:12px 16px;background:#1a1a1a;border-radius:8px;border:1px solid #222;">
-                                      <p style="margin:0 0 4px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;font-weight:600;">Trigger</p>
-                                      <p style="margin:0;font-size:14px;color:#ccc;font-weight:500;">${{ github.event_name }}</p>
-                                    </td>
-                                  </tr>
-                                </table>
-
-                                <!-- Environment -->
-                                <table cellpadding="0" cellspacing="0" border="0" style="width:100%;">
-                                  <tr>
-                                    <td style="padding:12px 16px;background:#1a1a1a;border-radius:8px;border:1px solid #222;">
-                                      <p style="margin:0 0 4px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;font-weight:600;">Environment</p>
-                                      <p style="margin:0;font-size:14px;color:#ccc;font-weight:500;">${{ github.event.inputs.environment || 'staging' }}</p>
-                                    </td>
-                                  </tr>
-                                </table>
-
+                                <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;width:100%;"><tr>
+                                  <td style="padding:12px 16px;background:#1a1a1a;border-radius:8px;border:1px solid #222;">
+                                    <p style="margin:0 0 4px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;font-weight:600;">Trigger</p>
+                                    <p style="margin:0;font-size:14px;color:#ccc;font-weight:500;">${{ github.event_name }}</p>
+                                  </td>
+                                </tr></table>
+                                <table cellpadding="0" cellspacing="0" border="0" style="width:100%;"><tr>
+                                  <td style="padding:12px 16px;background:#1a1a1a;border-radius:8px;border:1px solid #222;">
+                                    <p style="margin:0 0 4px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;font-weight:600;">Environment</p>
+                                    <p style="margin:0;font-size:14px;color:#ccc;font-weight:500;">${{ github.event.inputs.environment || 'staging' }}</p>
+                                  </td>
+                                </tr></table>
                               </td>
-
-                              <!-- Right column -->
                               <td width="50%" style="vertical-align:top;padding-left:12px;">
-
-                                <!-- Branch -->
-                                <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;width:100%;">
-                                  <tr>
-                                    <td style="padding:12px 16px;background:#1a1a1a;border-radius:8px;border:1px solid #222;">
-                                      <p style="margin:0 0 4px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;font-weight:600;">Branch</p>
-                                      <p style="margin:0;font-size:14px;color:#ccc;font-weight:500;">${{ github.ref_name }}</p>
-                                    </td>
-                                  </tr>
-                                </table>
-
-                                <!-- Commit -->
-                                <table cellpadding="0" cellspacing="0" border="0" style="width:100%;">
-                                  <tr>
-                                    <td style="padding:12px 16px;background:#1a1a1a;border-radius:8px;border:1px solid #222;">
-                                      <p style="margin:0 0 4px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;font-weight:600;">Commit</p>
-                                      <p style="margin:0;font-size:13px;color:#ccc;font-weight:500;font-family:'Courier New',monospace;">${{ github.sha }}</p>
-                                    </td>
-                                  </tr>
-                                </table>
-
+                                <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;width:100%;"><tr>
+                                  <td style="padding:12px 16px;background:#1a1a1a;border-radius:8px;border:1px solid #222;">
+                                    <p style="margin:0 0 4px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;font-weight:600;">Branch</p>
+                                    <p style="margin:0;font-size:14px;color:#ccc;font-weight:500;">${{ github.ref_name }}</p>
+                                  </td>
+                                </tr></table>
+                                <table cellpadding="0" cellspacing="0" border="0" style="width:100%;"><tr>
+                                  <td style="padding:12px 16px;background:#1a1a1a;border-radius:8px;border:1px solid #222;">
+                                    <p style="margin:0 0 4px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;font-weight:600;">Commit</p>
+                                    <p style="margin:0;font-size:13px;color:#ccc;font-weight:500;font-family:'Courier New',monospace;">${{ github.sha }}</p>
+                                  </td>
+                                </tr></table>
                               </td>
                             </tr>
                           </table>
@@ -385,25 +332,16 @@ jobs:
                       <!-- Footer -->
                       <tr>
                         <td style="padding:18px 40px;background:#0f0f0f;border-top:1px solid #1e1e1e;">
-                          <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                            <tr>
-                              <td>
-                                <p style="margin:0;font-size:11px;color:#3a3a3a;">
-                                  Automated by GitHub Actions &nbsp;·&nbsp; ${{ github.repository }} &nbsp;·&nbsp; Run #${{ github.run_number }}
-                                </p>
-                              </td>
-                            </tr>
-                          </table>
+                          <p style="margin:0;font-size:11px;color:#3a3a3a;">
+                            Automated by GitHub Actions &nbsp;·&nbsp; ${{ github.repository }} &nbsp;·&nbsp; Run #${{ github.run_number }}
+                          </p>
                         </td>
                       </tr>
 
                     </table>
-                    <!-- /Card -->
-
                   </td>
                 </tr>
               </table>
-
             </body>
             </html>
 
