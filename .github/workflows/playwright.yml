@@ -151,8 +151,12 @@ jobs:
       - name: Zip report for email
         if: always()
         run: |
-          cd ${{ env.REPORTS_DIR }}
-          zip -r ../playwright-report-${{ github.run_number }}.zip .
+          if [ -d "${{ env.REPORTS_DIR }}" ]; then
+            cd ${{ env.REPORTS_DIR }}
+            zip -r ../playwright-report-${{ github.run_number }}.zip .
+          else
+            echo "No report directory found, skipping zip."
+          fi
 
       # ────────────────────────────────────────────────────────
       # Email Notification
