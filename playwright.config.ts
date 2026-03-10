@@ -52,11 +52,7 @@ export default defineConfig({
   // 'list' → prints test results in the terminal as they run
   //
   //  https://playwright.dev/docs/test-reporters
-  reporter: [
-    ["html", { open: "never" }], // Don't auto-open after each run
-    ["list"], // Show progress in terminal
-  ],
-
+  reporter: [["html"], ["json", { outputFile: "test-results/results.json" }]],
   // ── GLOBAL TEST SETTINGS ─────────────────────────────────
   // These apply to ALL tests in all projects unless overridden.
   use: {

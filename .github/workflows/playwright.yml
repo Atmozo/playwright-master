@@ -66,7 +66,7 @@ jobs:
       - name: Run Playwright tests
         id: tests
         continue-on-error: true
-        run: npx playwright test --workers=4 --reporter=html --reporter=json:test-results/results.json
+        run: npx playwright test --workers=4
         env:
           OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
           WEATHER_BASE_URL: ${{ secrets.WEATHER_BASE_URL }}
