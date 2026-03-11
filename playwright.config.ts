@@ -35,17 +35,17 @@ export default defineConfig({
   fullyParallel: false,
 
   // ── RETRIES ───────────────────────────────────────────────
-  // On CI: retry failed tests twice before marking as failed.
+  // On CI: retry failed tests once before marking as failed.
   // Locally: no retries (so you see failures immediately)
   //
   // CAUTION: Retries hide flaky tests. Fix the root cause!
   //  https://playwright.dev/docs/test-retries
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 1 : 0,
 
   // ── WORKERS ───────────────────────────────────────────────
   // How many parallel browser instances to run.
-  // CI: 1 (limited resources), Local: auto-detect CPU cores
-  workers: process.env.CI ? 1 : undefined,
+  // CI: 2 (balanced speed vs stability), Local: auto-detect CPU cores
+  workers: process.env.CI ? 2 : undefined,
 
   // ── REPORTERS ─────────────────────────────────────────────
   // 'html' → generates a beautiful HTML report in playwright-report/
@@ -53,6 +53,7 @@ export default defineConfig({
   //
   //  https://playwright.dev/docs/test-reporters
   reporter: [["html"], ["json", { outputFile: "test-results/results.json" }]],
+
   // ── GLOBAL TEST SETTINGS ─────────────────────────────────
   // These apply to ALL tests in all projects unless overridden.
   use: {
@@ -92,31 +93,37 @@ export default defineConfig({
   // Each "project" runs your entire test suite in a different browser.
   // This is how Playwright does cross-browser testing.
   //
-  // For learning: use only chromium (fast).
-  // For production CI: run all three.
+  // CI: chromium only (fast, stable, fits in 30 min timeout)
+  // Local: all three browsers for full cross-browser coverage
   //
   //  https://playwright.dev/docs/test-projects
-  projects: [
-    {
-      name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
-    },
+  projects: process.env.CI
+    ? [
+        {
+          name: "chromium",
+          use: { ...devices["Desktop Chrome"] },
+        },
+      ]
+    : [
+        {
+          name: "chromium",
+          use: { ...devices["Desktop Chrome"] },
+        },
+        {
+          name: "firefox",
+          use: { ...devices["Desktop Firefox"] },
+        },
+        {
+          name: "webkit",
+          use: { ...devices["Desktop Safari"] },
+        },
 
-    {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
-    },
-    {
-      name: "webkit", // Safari engine
-      use: { ...devices["Desktop Safari"] },
-    },
-
-    // Mobile viewports:
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-  ],
+        // Mobile viewports:
+        // {
+        //   name: 'Mobile Chrome',
+        //   use: { ...devices['Pixel 5'] },
+        // },
+      ],
 
   // ── WEB SERVER (optional) ─────────────────────────────────
   // If you're testing a LOCAL app, Playwright can start it for you:
