@@ -85,11 +85,12 @@ jobs:
           RESULTS_FILE="test-results/results.json"
 
           if [ -f "$RESULTS_FILE" ]; then
-            TOTAL=$(jq '[.suites[].specs[].tests[]] | length' "$RESULTS_FILE" 2>/dev/null || echo 0)
-            PASSED=$(jq '[.suites[].specs[].tests[] | select(.results[0].status == "passed")] | length' "$RESULTS_FILE" 2>/dev/null || echo 0)
-            FAILED=$(jq '[.suites[].specs[].tests[] | select(.results[0].status == "failed")] | length' "$RESULTS_FILE" 2>/dev/null || echo 0)
-            SKIPPED=$(jq '[.suites[].specs[].tests[] | select(.results[0].status == "skipped")] | length' "$RESULTS_FILE" 2>/dev/null || echo 0)
-            FLAKY=$(jq '[.suites[].specs[].tests[] | select(.results[0].status == "flaky")] | length' "$RESULTS_FILE" 2>/dev/null || echo 0)
+            # Use recursive descent (..) to find all tests regardless of nesting depth
+            TOTAL=$(jq '[.. | objects | select(has("results")) | .results[0]] | length' "$RESULTS_FILE" 2>/dev/null || echo 0)
+            PASSED=$(jq '[.. | objects | select(has("results")) | .results[0] | select(.status == "passed")] | length' "$RESULTS_FILE" 2>/dev/null || echo 0)
+            FAILED=$(jq '[.. | objects | select(has("results")) | .results[0] | select(.status == "failed")] | length' "$RESULTS_FILE" 2>/dev/null || echo 0)
+            SKIPPED=$(jq '[.. | objects | select(has("results")) | .results[0] | select(.status == "skipped")] | length' "$RESULTS_FILE" 2>/dev/null || echo 0)
+            FLAKY=$(jq '[.. | objects | select(has("results")) | .results[0] | select(.status == "flaky")] | length' "$RESULTS_FILE" 2>/dev/null || echo 0)
           else
             TOTAL=0; PASSED=0; FAILED=0; SKIPPED=0; FLAKY=0
           fi
