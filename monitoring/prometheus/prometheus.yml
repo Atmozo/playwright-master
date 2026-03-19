@@ -1,0 +1,152 @@
+# ============================================================
+# 📊 PROMETHEUS CONFIGURATION
+# ============================================================
+# Monitors:
+# ✅ Prometheus itself
+# ✅ Node Exporter (system metrics)
+# ✅ Jenkins
+# ✅ Kafka
+# ✅ PostgreSQL
+# ============================================================
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: "devops-stack"
+    environment: "local"
+
+# Alertmanager configuration (optional)
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+          # - 'alertmanager:9093'
+
+# Load rules once and periodically evaluate them
+rule_files:
+  # - "alerts/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # ══════════════════════════════════════════════════════════
+  # Prometheus itself
+  # ══════════════════════════════════════════════════════════
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+        labels:
+          service: "prometheus"
+
+  # ══════════════════════════════════════════════════════════
+  # Node Exporter (System Metrics)
+  # ══════════════════════════════════════════════════════════
+  - job_name: "node-exporter"
+    static_configs:
+      - targets: ["node-exporter:9100"]
+        labels:
+          service: "node-exporter"
+          instance: "docker-host"
+
+  # ══════════════════════════════════════════════════════════
+  # Jenkins
+  # ══════════════════════════════════════════════════════════
+  - job_name: "jenkins"
+    metrics_path: "/jenkins/prometheus"
+    static_configs:
+      - targets: ["jenkins:8080"]
+        labels:
+          service: "jenkins"
+
+  # ══════════════════════════════════════════════════════════
+  # Kafka JMX Metrics (requires JMX exporter)
+  # ══════════════════════════════════════════════════════════
+  - job_name: "kafka"
+    static_configs:
+      - targets: ["kafka:9092"]
+        labels:
+          service: "kafka"
+
+  # ══════════════════════════════════════════════════════════
+  # PostgreSQL (requires postgres_exporter)
+  # ══════════════════════════════════════════════════════════
+  - job_name: "postgres"
+    static_configs:
+      - targets: ["postgres:5432"]
+        labels:
+          service: "postgres"
+
+  # ══════════════════════════════════════════════════════════
+  # Grafana
+  # ══════════════════════════════════════════════════════════
+  - job_name: "grafana"
+    static_configs:
+      - targets: ["grafana:3000"]
+        labels:
+          service: "grafana"
+
+  # ══════════════════════════════════════════════════════════
+  # SonarQube
+  # ══════════════════════════════════════════════════════════
+  - job_name: "sonarqube"
+    metrics_path: "/api/monitoring/metrics"
+    static_configs:
+      - targets: ["sonarqube:9000"]
+        labels:
+          service: "sonarqube"
+# ============================================================
+# 🎯 WHAT METRICS ARE COLLECTED
+# ============================================================
+#
+# Prometheus:
+# - Request rate
+# - Query duration
+# - Storage size
+# - Rule evaluation time
+#
+# Node Exporter:
+# - CPU usage
+# - Memory usage
+# - Disk I/O
+# - Network traffic
+# - Load average
+#
+# Jenkins:
+# - Build count
+# - Build duration
+# - Queue size
+# - Executor usage
+# - Plugin metrics
+#
+# Kafka:
+# - Message rate
+# - Broker metrics
+# - Consumer lag
+# - Partition count
+#
+# PostgreSQL:
+# - Connection count
+# - Query duration
+# - Cache hit ratio
+# - Database size
+#
+# ============================================================
+# 🔍 QUERY EXAMPLES
+# ============================================================
+#
+# CPU Usage:
+#   100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+#
+# Memory Usage:
+#   (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
+#
+# Disk Usage:
+#   (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100
+#
+# Jenkins Build Rate:
+#   rate(jenkins_builds_total[5m])
+#
+# Kafka Message Rate:
+#   rate(kafka_server_brokertopicmetrics_messagesin_total[5m])
+#
+# ============================================================
