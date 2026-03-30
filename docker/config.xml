@@ -1,0 +1,63 @@
+<project>
+  <actions/>
+  <description>Playwright Tests Job</description>
+  <keepDependencies>false</keepDependencies>
+
+  <scm class="hudson.plugins.git.GitSCM">
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/YOUR_USERNAME/YOUR_REPO</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/main</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+  </scm>
+
+  <triggers>
+    <hudson.triggers.SCMTrigger>
+      <spec>H/5 * * * *</spec>
+    </hudson.triggers.SCMTrigger>
+  </triggers>
+
+  <builders>
+    <hudson.tasks.Shell>
+      <command>
+        <![CDATA[
+#!/bin/bash
+echo "Starting Playwright Tests..."
+
+npm ci
+npx playwright install --with-deps chromium
+npx playwright test
+
+echo "Done!"
+        ]]>
+      </command>
+    </hudson.tasks.Shell>
+  </builders>
+
+  <publishers>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>playwright-report/**/*, test-results/**/*</artifacts>
+      <allowEmptyArchive>true</allowEmptyArchive>
+    </hudson.tasks.ArtifactArchiver>
+
+    <htmlpublisher.HtmlPublisher>
+      <reportTargets>
+        <htmlpublisher.HtmlPublisherTarget>
+          <reportName>Playwright Test Report</reportName>
+          <reportDir>playwright-report</reportDir>
+          <reportFiles>index.html</reportFiles>
+          <keepAll>true</keepAll>
+        </htmlpublisher.HtmlPublisherTarget>
+      </reportTargets>
+    </htmlpublisher.HtmlPublisher>
+  </publishers>
+
+  <buildWrappers>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper/>
+  </buildWrappers>
+</project>
