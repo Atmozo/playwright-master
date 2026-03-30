@@ -1,4 +1,9 @@
-
+# Jenkins local data
+docker/jenkins/jobs/
+docker/jenkins/workspace/
+docker/jenkins/**/*.log
+docker/jenkins/**/*.xml
+docker/jenkins/**/builds/
 # Playwright
 node_modules/
 /test-results/
