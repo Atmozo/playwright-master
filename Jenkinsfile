@@ -6,7 +6,12 @@ pipeline {
         }
     }
 
+    environment {
+        NODE_ENV = 'test'
+    }
+
     stages {
+
         stage('Install') {
             steps {
                 sh '''
@@ -18,7 +23,13 @@ pipeline {
 
         stage('Test') {
             steps {
-                sh 'npx playwright test'
+                withCredentials([string(credentialsId: 'openweather-api-key', variable: 'OPENWEATHER_API_KEY')]) {
+                    sh '''
+                        echo "Running tests with API key..."
+                        export OPENWEATHER_API_KEY=$OPENWEATHER_API_KEY
+                        npx playwright test
+                    '''
+                }
             }
         }
 
@@ -33,6 +44,15 @@ pipeline {
                     allowMissing: true
                 ])
             }
+        }
+    }
+
+    post {
+        success {
+            echo ' Pipeline passed!'
+        }
+        failure {
+            echo ' Pipeline failed!'
         }
     }
 }
