@@ -140,11 +140,7 @@ pipeline {
                     expression { params.ENVIRONMENT == 'production' }
                 }
             }
-            input {
-                message 'Deploy to production?'
-                ok 'Deploy'
-            }
-            steps {
+                        steps {
                 echo 'Deploying to production...'
                 sh './deploy.sh'
             }
