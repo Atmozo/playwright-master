@@ -1,5 +1,5 @@
 // ============================================================
-// PLAYWRIGHT TESTS - PRODUCTION PIPELINE
+// PLAYWRIGHT TESTS - PRODUCTION PIPELINE 
 // ============================================================
 
 pipeline {
@@ -29,9 +29,12 @@ pipeline {
     }
 
     options {
-        buildDiscarder(logRotator(numToKeepStr: '30', daysToKeepStr: '30', artifactNumToKeepStr: '10'))
+        buildDiscarder(logRotator(
+            numToKeepStr: '30',
+            daysToKeepStr: '30',
+            artifactNumToKeepStr: '10'
+        ))
         timeout(time: 1, unit: 'HOURS')
-        timestamps()
         disableConcurrentBuilds()
     }
 
@@ -42,6 +45,9 @@ pipeline {
 
     stages {
 
+        // ─────────────────────────────────────────────
+        // Pipeline Info
+        // ─────────────────────────────────────────────
         stage('Pipeline Info') {
             steps {
                 script {
@@ -64,6 +70,9 @@ pipeline {
             }
         }
 
+        // ─────────────────────────────────────────────
+        // Install Dependencies
+        // ─────────────────────────────────────────────
         stage('Install Dependencies') {
             steps {
                 sh 'npm ci'
@@ -77,6 +86,9 @@ pipeline {
             }
         }
 
+        // ─────────────────────────────────────────────
+        // Code Quality
+        // ─────────────────────────────────────────────
         stage('Code Quality') {
             parallel {
                 stage('ESLint') {
@@ -88,35 +100,44 @@ pipeline {
             }
         }
 
+        // ─────────────────────────────────────────────
+        // Run Tests (FIXED)
+        // ─────────────────────────────────────────────
         stage('Run Tests') {
             steps {
                 script {
                     def browserArg  = params.BROWSER == 'all' ? '' : "--project=${params.BROWSER}"
                     def headlessArg = params.HEADLESS ? '' : '--headed'
 
-                    def testScope = ''
-                    if (env.BRANCH_NAME == 'main' || env.BRANCH_NAME == 'develop') {
-                        testScope = params.TEST_PATTERN
-                    } else if (env.BRANCH_NAME?.startsWith('feature/')) {
-                        testScope = '--grep @smoke'
-                    } else {
-                        testScope = params.TEST_PATTERN
-                    }
+                    // ✅ Always run ALL tests
+                    def testScope = params.TEST_PATTERN ?: '**/*.spec.ts'
+
+                    // Ensure results folder exists
+                    sh 'mkdir -p test-results'
 
                     sh """
                         npx playwright test ${browserArg} ${headlessArg} \
-                        --reporter=html,json,junit \
+                        --reporter=html \
+                        --reporter=junit=test-results/results.xml \
                         ${testScope}
                     """
                 }
             }
         }
 
+        // ─────────────────────────────────────────────
+        // Security Scan
+        // ─────────────────────────────────────────────
         stage('Security Scan') {
             when { branch 'main' }
-            steps { sh 'npm audit --production || true' }
+            steps {
+                sh 'npm audit --production || true'
+            }
         }
 
+        // ─────────────────────────────────────────────
+        // Publish Reports
+        // ─────────────────────────────────────────────
         stage('Publish Reports') {
             steps {
                 publishHTML([
@@ -133,6 +154,9 @@ pipeline {
             }
         }
 
+        // ─────────────────────────────────────────────
+        // Deploy (AUTO, NO INPUT BLOCK)
+        // ─────────────────────────────────────────────
         stage('Deploy') {
             when {
                 allOf {
@@ -140,13 +164,16 @@ pipeline {
                     expression { params.ENVIRONMENT == 'production' }
                 }
             }
-                        steps {
+            steps {
                 echo 'Deploying to production...'
                 sh './deploy.sh'
             }
         }
     }
 
+    // ─────────────────────────────────────────────
+    // Post Actions
+    // ─────────────────────────────────────────────
     post {
         success {
             script {
