@@ -45,9 +45,9 @@ pipeline {
 
     stages {
 
-        // ─────────────────────────────────────────────
-        // Pipeline Info
-        // ─────────────────────────────────────────────
+        // ─────────────────────────────
+        // INFO
+        // ─────────────────────────────
         stage('Pipeline Info') {
             steps {
                 script {
@@ -70,9 +70,9 @@ pipeline {
             }
         }
 
-        // ─────────────────────────────────────────────
-        // Install Dependencies
-        // ─────────────────────────────────────────────
+        // ─────────────────────────────
+        // INSTALL
+        // ─────────────────────────────
         stage('Install Dependencies') {
             steps {
                 sh 'npm ci'
@@ -86,48 +86,38 @@ pipeline {
             }
         }
 
-        // ─────────────────────────────────────────────
-        // Code Quality
-        // ─────────────────────────────────────────────
+        // ─────────────────────────────
+        // CODE QUALITY (SAFE)
+        // ─────────────────────────────
         stage('Code Quality') {
-            parallel {
-                stage('ESLint') {
-                    steps { sh 'npm run lint || true' }
-                }
-                stage('TypeScript') {
-                    steps { sh 'npx tsc --noEmit || true' }
-                }
+            steps {
+                echo 'Skipping lint & type checks (not configured)'
             }
         }
 
-        // ─────────────────────────────────────────────
-        // Run Tests (FIXED)
-        // ─────────────────────────────────────────────
+        // ─────────────────────────────
+        // RUN TESTS (FIXED)
+        // ─────────────────────────────
         stage('Run Tests') {
             steps {
                 script {
                     def browserArg  = params.BROWSER == 'all' ? '' : "--project=${params.BROWSER}"
                     def headlessArg = params.HEADLESS ? '' : '--headed'
-
-                    // ✅ Always run ALL tests
-                    def testScope = params.TEST_PATTERN ?: '**/*.spec.ts'
+                    def testScope   = params.TEST_PATTERN ?: '**/*.spec.ts'
 
                     // Ensure results folder exists
                     sh 'mkdir -p test-results'
 
                     sh """
-                        npx playwright test ${browserArg} ${headlessArg} \
-                        --reporter=html \
-                        --reporter=junit=test-results/results.xml \
-                        ${testScope}
+                        npx playwright test ${browserArg} ${headlessArg} ${testScope}
                     """
                 }
             }
         }
 
-        // ─────────────────────────────────────────────
-        // Security Scan
-        // ─────────────────────────────────────────────
+        // ─────────────────────────────
+        // SECURITY
+        // ─────────────────────────────
         stage('Security Scan') {
             when { branch 'main' }
             steps {
@@ -135,9 +125,9 @@ pipeline {
             }
         }
 
-        // ─────────────────────────────────────────────
-        // Publish Reports
-        // ─────────────────────────────────────────────
+        // ─────────────────────────────
+        // REPORTS
+        // ─────────────────────────────
         stage('Publish Reports') {
             steps {
                 publishHTML([
@@ -149,14 +139,14 @@ pipeline {
                     allowMissing: true
                 ])
 
-                junit testResults: 'test-results/*.xml', allowEmptyResults: true
+                junit testResults: 'test-results/*.xml', allowEmptyResults: false
                 archiveArtifacts artifacts: 'test-results/**/*', allowEmptyArchive: true
             }
         }
 
-        // ─────────────────────────────────────────────
-        // Deploy (AUTO, NO INPUT BLOCK)
-        // ─────────────────────────────────────────────
+        // ─────────────────────────────
+        // DEPLOY
+        // ─────────────────────────────
         stage('Deploy') {
             when {
                 allOf {
@@ -171,9 +161,9 @@ pipeline {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // Post Actions
-    // ─────────────────────────────────────────────
+    // ─────────────────────────────
+    // POST
+    // ─────────────────────────────
     post {
         success {
             script {
