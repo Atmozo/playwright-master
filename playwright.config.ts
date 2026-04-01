@@ -52,9 +52,12 @@ export default defineConfig({
   // 'list' → prints test results in the terminal as they run
   //
   //  https://playwright.dev/docs/test-reporters
-  reporter: [["html"], ["json", { outputFile: "test-results/results.json" }]],
-
-  // ── GLOBAL TEST SETTINGS ─────────────────────────────────
+  // ── REPORTERS ─────────────────────────────────────────────
+  reporter: [
+    ["html"],
+    ["json", { outputFile: "test-results/results.json" }],
+    ["junit", { outputFile: "test-results/results.xml" }],
+  ], // ── GLOBAL TEST SETTINGS ─────────────────────────────────
   // These apply to ALL tests in all projects unless overridden.
   use: {
     // BASE URL: All page.goto('/login') calls prepend this.
