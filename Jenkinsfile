@@ -1,5 +1,5 @@
 // ============================================================
-// PLAYWRIGHT TESTS - PRODUCTION PIPELINE 
+// PLAYWRIGHT TESTS - PRODUCTION PIPELINE
 // ============================================================
 
 pipeline {
@@ -15,7 +15,8 @@ pipeline {
         choice(name: 'ENVIRONMENT', choices: ['dev', 'staging', 'production'], description: 'Target environment')
         choice(name: 'BROWSER', choices: ['chromium', 'firefox', 'webkit', 'all'], description: 'Which browser to test')
         booleanParam(name: 'HEADLESS', defaultValue: true, description: 'Run tests in headless mode')
-        string(name: 'TEST_PATTERN', defaultValue: '**/*.spec.ts', description: 'Test file pattern')
+        // Leave blank to run ALL tests via playwright.config.ts testDir
+        string(name: 'TEST_PATTERN', defaultValue: '', description: 'Test file pattern (blank = all tests)')
     }
 
     environment {
@@ -59,6 +60,7 @@ pipeline {
                     Environment: ${params.ENVIRONMENT}
                     Browser:     ${params.BROWSER}
                     Headless:    ${params.HEADLESS}
+                    Test Pattern: ${params.TEST_PATTERN ?: '(all tests)'}
                     Build:       #${BUILD_NUMBER}
                     ============================================
                     """
@@ -101,16 +103,19 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
+                    // Empty string = no --project flag needed for 'all',
+                    // or pass the chosen browser as a project filter
                     def browserArg  = params.BROWSER == 'all' ? '' : "--project=${params.BROWSER}"
-                    def headlessArg = params.HEADLESS ? '' : '--headed'
-                    def testScope   = params.TEST_PATTERN ?: '**/*.spec.ts'
 
-                    // Ensure results folder exists
+                    def headlessArg = params.HEADLESS ? '' : '--headed'
+
+                    // Blank TEST_PATTERN → Playwright uses testDir from playwright.config.ts
+                    // i.e. runs ALL 121 tests in ./tests/**
+                    def testScope   = params.TEST_PATTERN?.trim() ?: ''
+
                     sh 'mkdir -p test-results'
 
-                    sh """
-                        npx playwright test ${browserArg} ${headlessArg} ${testScope}
-                    """
+                    sh "npx playwright test ${browserArg} ${headlessArg} ${testScope}".trim()
                 }
             }
         }
