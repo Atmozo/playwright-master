@@ -117,18 +117,12 @@ pipeline {
                         echo "✅ Kafka monitor started (PID: $(cat kafka-monitor.pid))"
                     '''
 
-                    // Publish build started event
+                    // Publish tests started event via kafka-console-producer
                     sh """
-                        npx ts-node -e "
-                          const { kafkaHelper } = require('./utils/kafka-helper');
-                          kafkaHelper.publishEvent('build-events', {
-                            type: 'TESTS_STARTED',
-                            build: '${BUILD_NUMBER}',
-                            branch: '${env.BRANCH_NAME ?: 'N/A'}',
-                            environment: '${params.ENVIRONMENT}',
-                            browser: '${params.BROWSER}'
-                          }).then(() => kafkaHelper.disconnect());
-                        "
+                        echo '{"type":"TESTS_STARTED","build":"${BUILD_NUMBER}","environment":"${params.ENVIRONMENT}","browser":"${params.BROWSER}","timestamp":"'\$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' | \
+                        docker exec -i kafka kafka-console-producer \
+                          --bootstrap-server localhost:9092 \
+                          --topic build-events
                     """
 
                     try {
@@ -136,28 +130,19 @@ pipeline {
 
                         // Publish success event
                         sh """
-                            npx ts-node -e "
-                              const { kafkaHelper } = require('./utils/kafka-helper');
-                              kafkaHelper.publishEvent('build-events', {
-                                type: 'TESTS_PASSED',
-                                build: '${BUILD_NUMBER}',
-                                result: 'SUCCESS'
-                              }).then(() => kafkaHelper.disconnect());
-                            "
+                            echo '{"type":"TESTS_PASSED","build":"${BUILD_NUMBER}","result":"SUCCESS","timestamp":"'\$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' | \
+                            docker exec -i kafka kafka-console-producer \
+                              --bootstrap-server localhost:9092 \
+                              --topic build-events
                         """
 
                     } catch (Exception e) {
                         // Publish failure event
                         sh """
-                            npx ts-node -e "
-                              const { kafkaHelper } = require('./utils/kafka-helper');
-                              kafkaHelper.publishEvent('build-events', {
-                                type: 'TESTS_FAILED',
-                                build: '${BUILD_NUMBER}',
-                                result: 'FAILURE',
-                                error: '${e.message}'
-                              }).then(() => kafkaHelper.disconnect());
-                            "
+                            echo '{"type":"TESTS_FAILED","build":"${BUILD_NUMBER}","result":"FAILURE","timestamp":"'\$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' | \
+                            docker exec -i kafka kafka-console-producer \
+                              --bootstrap-server localhost:9092 \
+                              --topic build-events
                         """
                         throw e
 
@@ -215,34 +200,22 @@ pipeline {
                 }
             }
             steps {
-                script {
-                    sh """
-                        npx ts-node -e "
-                          const { kafkaHelper } = require('./utils/kafka-helper');
-                          kafkaHelper.publishEvent('deployment-events', {
-                            type: 'DEPLOYMENT_STARTED',
-                            build: '${BUILD_NUMBER}',
-                            environment: 'production'
-                          }).then(() => kafkaHelper.disconnect());
-                        "
-                    """
-                }
+                sh """
+                    echo '{"type":"DEPLOYMENT_STARTED","build":"${BUILD_NUMBER}","environment":"production","timestamp":"'\$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' | \
+                    docker exec -i kafka kafka-console-producer \
+                      --bootstrap-server localhost:9092 \
+                      --topic deployment-events
+                """
 
                 echo 'Deploying to production...'
                 sh './deploy.sh'
 
-                script {
-                    sh """
-                        npx ts-node -e "
-                          const { kafkaHelper } = require('./utils/kafka-helper');
-                          kafkaHelper.publishEvent('deployment-events', {
-                            type: 'DEPLOYMENT_COMPLETE',
-                            build: '${BUILD_NUMBER}',
-                            environment: 'production'
-                          }).then(() => kafkaHelper.disconnect());
-                        "
-                    """
-                }
+                sh """
+                    echo '{"type":"DEPLOYMENT_COMPLETE","build":"${BUILD_NUMBER}","environment":"production","timestamp":"'\$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' | \
+                    docker exec -i kafka kafka-console-producer \
+                      --bootstrap-server localhost:9092 \
+                      --topic deployment-events
+                """
             }
         }
     }
@@ -268,7 +241,6 @@ pipeline {
             echo "❌ Build #${BUILD_NUMBER} failed"
         }
         always {
-            // Archive Kafka monitor log
             archiveArtifacts artifacts: 'kafka-monitor.log', allowEmptyArchive: true
             deleteDir()
         }
