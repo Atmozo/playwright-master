@@ -117,12 +117,10 @@ pipeline {
                         echo "✅ Kafka monitor started (PID: $(cat kafka-monitor.pid))"
                     '''
 
-                    // Publish tests started event via kafka-console-producer
+                    // Publish tests started event
                     sh """
-                        echo '{"type":"TESTS_STARTED","build":"${BUILD_NUMBER}","environment":"${params.ENVIRONMENT}","browser":"${params.BROWSER}","timestamp":"'\$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' | \
-                        docker exec -i kafka kafka-console-producer \
-                          --bootstrap-server localhost:9092 \
-                          --topic build-events
+                        node utils/publish-event.js build-events \
+                        '{"type":"TESTS_STARTED","build":"${BUILD_NUMBER}","environment":"${params.ENVIRONMENT}","browser":"${params.BROWSER}","timestamp":"'\$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' || true
                     """
 
                     try {
@@ -130,19 +128,15 @@ pipeline {
 
                         // Publish success event
                         sh """
-                            echo '{"type":"TESTS_PASSED","build":"${BUILD_NUMBER}","result":"SUCCESS","timestamp":"'\$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' | \
-                            docker exec -i kafka kafka-console-producer \
-                              --bootstrap-server localhost:9092 \
-                              --topic build-events
+                            node utils/publish-event.js build-events \
+                            '{"type":"TESTS_PASSED","build":"${BUILD_NUMBER}","result":"SUCCESS","timestamp":"'\$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' || true
                         """
 
                     } catch (Exception e) {
                         // Publish failure event
                         sh """
-                            echo '{"type":"TESTS_FAILED","build":"${BUILD_NUMBER}","result":"FAILURE","timestamp":"'\$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' | \
-                            docker exec -i kafka kafka-console-producer \
-                              --bootstrap-server localhost:9092 \
-                              --topic build-events
+                            node utils/publish-event.js build-events \
+                            '{"type":"TESTS_FAILED","build":"${BUILD_NUMBER}","result":"FAILURE","timestamp":"'\$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' || true
                         """
                         throw e
 
@@ -201,20 +195,16 @@ pipeline {
             }
             steps {
                 sh """
-                    echo '{"type":"DEPLOYMENT_STARTED","build":"${BUILD_NUMBER}","environment":"production","timestamp":"'\$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' | \
-                    docker exec -i kafka kafka-console-producer \
-                      --bootstrap-server localhost:9092 \
-                      --topic deployment-events
+                    node utils/publish-event.js deployment-events \
+                    '{"type":"DEPLOYMENT_STARTED","build":"${BUILD_NUMBER}","environment":"production","timestamp":"'\$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' || true
                 """
 
                 echo 'Deploying to production...'
                 sh './deploy.sh'
 
                 sh """
-                    echo '{"type":"DEPLOYMENT_COMPLETE","build":"${BUILD_NUMBER}","environment":"production","timestamp":"'\$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' | \
-                    docker exec -i kafka kafka-console-producer \
-                      --bootstrap-server localhost:9092 \
-                      --topic deployment-events
+                    node utils/publish-event.js deployment-events \
+                    '{"type":"DEPLOYMENT_COMPLETE","build":"${BUILD_NUMBER}","environment":"production","timestamp":"'\$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' || true
                 """
             }
         }
