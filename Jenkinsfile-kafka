@@ -1,0 +1,276 @@
+// ============================================================
+// PLAYWRIGHT TESTS - KAFKA MONITORED PIPELINE
+// ============================================================
+
+pipeline {
+
+    agent {
+        docker {
+            image 'mcr.microsoft.com/playwright:v1.48.0-jammy'
+            args '-u root:root'
+        }
+    }
+
+    parameters {
+        choice(name: 'ENVIRONMENT', choices: ['dev', 'staging', 'production'], description: 'Target environment')
+        choice(name: 'BROWSER', choices: ['chromium', 'firefox', 'webkit', 'all'], description: 'Which browser to test')
+        booleanParam(name: 'HEADLESS', defaultValue: true, description: 'Run tests in headless mode')
+        string(name: 'TEST_PATTERN', defaultValue: '', description: 'Test file pattern (blank = all tests)')
+    }
+
+    environment {
+        OPENWEATHER_API_KEY = credentials('openweather-api-key')
+        WEATHER_BASE_URL    = 'https://api.openweathermap.org'
+        REQRES_BASE_URL     = 'https://reqres.in'
+        DOGS_BASE_URL       = 'https://dog.ceo/api'
+        NODE_ENV            = 'test'
+        CI                  = 'true'
+        TEST_ENV            = "${params.ENVIRONMENT}"
+        KAFKA_BROKER        = 'kafka:9092'
+    }
+
+    options {
+        buildDiscarder(logRotator(
+            numToKeepStr: '30',
+            daysToKeepStr: '30',
+            artifactNumToKeepStr: '10'
+        ))
+        timeout(time: 1, unit: 'HOURS')
+        disableConcurrentBuilds()
+    }
+
+    triggers {
+        pollSCM('H/15 * * * *')
+        cron('0 2 * * *')
+    }
+
+    stages {
+
+        // ─────────────────────────────
+        // INFO
+        // ─────────────────────────────
+        stage('Pipeline Info') {
+            steps {
+                script {
+                    echo """
+                    ============================================
+                    PLAYWRIGHT TEST PIPELINE (KAFKA MONITORED)
+                    ============================================
+                    Branch:       ${env.BRANCH_NAME ?: 'N/A'}
+                    Environment:  ${params.ENVIRONMENT}
+                    Browser:      ${params.BROWSER}
+                    Headless:     ${params.HEADLESS}
+                    Test Pattern: ${params.TEST_PATTERN ?: '(all tests)'}
+                    Build:        #${BUILD_NUMBER}
+                    Kafka Broker: ${env.KAFKA_BROKER}
+                    ============================================
+                    """
+                }
+                sh '''
+                    echo "Commit: $GIT_COMMIT"
+                    git log -1 --pretty=format:"%h - %an: %s"
+                '''
+            }
+        }
+
+        // ─────────────────────────────
+        // INSTALL
+        // ─────────────────────────────
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm ci'
+                script {
+                    if (params.BROWSER == 'all') {
+                        sh 'npx playwright install --with-deps'
+                    } else {
+                        sh "npx playwright install --with-deps ${params.BROWSER}"
+                    }
+                }
+            }
+        }
+
+        // ─────────────────────────────
+        // CODE QUALITY
+        // ─────────────────────────────
+        stage('Code Quality') {
+            steps {
+                echo 'Skipping lint & type checks (not configured)'
+            }
+        }
+
+        // ─────────────────────────────
+        // RUN TESTS + KAFKA MONITORING
+        // ─────────────────────────────
+        stage('Run Tests') {
+            steps {
+                script {
+                    def browserArg  = params.BROWSER == 'all' ? '' : "--project=${params.BROWSER}"
+                    def headlessArg = params.HEADLESS ? '' : '--headed'
+                    def testScope   = params.TEST_PATTERN?.trim() ?: ''
+
+                    sh 'mkdir -p test-results'
+
+                    // Start Kafka consumer monitor in background
+                    sh '''
+                        npx ts-node utils/kafka-consumer.ts > kafka-monitor.log 2>&1 &
+                        echo $! > kafka-monitor.pid
+                        echo "✅ Kafka monitor started (PID: $(cat kafka-monitor.pid))"
+                    '''
+
+                    // Publish build started event
+                    sh """
+                        npx ts-node -e "
+                          const { kafkaHelper } = require('./utils/kafka-helper');
+                          kafkaHelper.publishEvent('build-events', {
+                            type: 'TESTS_STARTED',
+                            build: '${BUILD_NUMBER}',
+                            branch: '${env.BRANCH_NAME ?: 'N/A'}',
+                            environment: '${params.ENVIRONMENT}',
+                            browser: '${params.BROWSER}'
+                          }).then(() => kafkaHelper.disconnect());
+                        "
+                    """
+
+                    try {
+                        sh "npx playwright test ${browserArg} ${headlessArg} ${testScope}".trim()
+
+                        // Publish success event
+                        sh """
+                            npx ts-node -e "
+                              const { kafkaHelper } = require('./utils/kafka-helper');
+                              kafkaHelper.publishEvent('build-events', {
+                                type: 'TESTS_PASSED',
+                                build: '${BUILD_NUMBER}',
+                                result: 'SUCCESS'
+                              }).then(() => kafkaHelper.disconnect());
+                            "
+                        """
+
+                    } catch (Exception e) {
+                        // Publish failure event
+                        sh """
+                            npx ts-node -e "
+                              const { kafkaHelper } = require('./utils/kafka-helper');
+                              kafkaHelper.publishEvent('build-events', {
+                                type: 'TESTS_FAILED',
+                                build: '${BUILD_NUMBER}',
+                                result: 'FAILURE',
+                                error: '${e.message}'
+                              }).then(() => kafkaHelper.disconnect());
+                            "
+                        """
+                        throw e
+
+                    } finally {
+                        // Always stop Kafka monitor
+                        sh '''
+                            if [ -f kafka-monitor.pid ]; then
+                                kill $(cat kafka-monitor.pid) || true
+                                rm -f kafka-monitor.pid
+                                echo "🛑 Kafka monitor stopped"
+                            fi
+                        '''
+                    }
+                }
+            }
+        }
+
+        // ─────────────────────────────
+        // SECURITY
+        // ─────────────────────────────
+        stage('Security Scan') {
+            when { branch 'main' }
+            steps {
+                sh 'npm audit --production || true'
+            }
+        }
+
+        // ─────────────────────────────
+        // REPORTS
+        // ─────────────────────────────
+        stage('Publish Reports') {
+            steps {
+                publishHTML([
+                    reportDir: 'playwright-report',
+                    reportFiles: 'index.html',
+                    reportName: 'Playwright Test Report',
+                    keepAll: true,
+                    alwaysLinkToLastBuild: true,
+                    allowMissing: true
+                ])
+
+                junit testResults: 'test-results/*.xml', allowEmptyResults: false
+                archiveArtifacts artifacts: 'test-results/**/*', allowEmptyArchive: true
+            }
+        }
+
+        // ─────────────────────────────
+        // DEPLOY
+        // ─────────────────────────────
+        stage('Deploy') {
+            when {
+                allOf {
+                    branch 'main'
+                    expression { params.ENVIRONMENT == 'production' }
+                }
+            }
+            steps {
+                script {
+                    sh """
+                        npx ts-node -e "
+                          const { kafkaHelper } = require('./utils/kafka-helper');
+                          kafkaHelper.publishEvent('deployment-events', {
+                            type: 'DEPLOYMENT_STARTED',
+                            build: '${BUILD_NUMBER}',
+                            environment: 'production'
+                          }).then(() => kafkaHelper.disconnect());
+                        "
+                    """
+                }
+
+                echo 'Deploying to production...'
+                sh './deploy.sh'
+
+                script {
+                    sh """
+                        npx ts-node -e "
+                          const { kafkaHelper } = require('./utils/kafka-helper');
+                          kafkaHelper.publishEvent('deployment-events', {
+                            type: 'DEPLOYMENT_COMPLETE',
+                            build: '${BUILD_NUMBER}',
+                            environment: 'production'
+                          }).then(() => kafkaHelper.disconnect());
+                        "
+                    """
+                }
+            }
+        }
+    }
+
+    // ─────────────────────────────
+    // POST
+    // ─────────────────────────────
+    post {
+        success {
+            script {
+                def duration = currentBuild.durationString.replace(' and counting', '')
+                echo """
+                ╔════════════════════════════════════════╗
+                ║  ✅ PIPELINE SUCCEEDED                 ║
+                ╠════════════════════════════════════════╣
+                ║  Build:    #${BUILD_NUMBER}            ║
+                ║  Duration: ${duration}                 ║
+                ╚════════════════════════════════════════╝
+                """
+            }
+        }
+        failure {
+            echo "❌ Build #${BUILD_NUMBER} failed"
+        }
+        always {
+            // Archive Kafka monitor log
+            archiveArtifacts artifacts: 'kafka-monitor.log', allowEmptyArchive: true
+            deleteDir()
+        }
+    }
+}

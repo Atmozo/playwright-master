@@ -1,0 +1,16 @@
+🎯 Starting Kafka test monitor...
+
+(node:226072) TimeoutNegativeWarning: -1775659158186 is a negative number.
+Timeout duration was set to 1.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✅ Kafka consumer connected (group: test-monitor-group)
+{"level":"INFO","timestamp":"2026-04-08T14:39:18.192Z","logger":"kafkajs","message":"[Consumer] Starting","groupId":"test-monitor-group"}
+{"level":"INFO","timestamp":"2026-04-08T14:39:23.555Z","logger":"kafkajs","message":"[ConsumerGroup] Consumer has joined the group","groupId":"test-monitor-group","memberId":"playwright-tests-bdfc8a9b-427d-40bb-9ad6-5c00734f8fcc","leaderId":"playwright-tests-c7a14c32-7326-44ec-a4f5-01b54d6a8c2a","isLeader":false,"memberAssignment":{"test-events":[0,2],"test-results":[1],"test-metrics":[0]},"groupProtocol":"RoundRobinAssigner","duration":5362}
+✅ [4:39:27 PM] Test passed: should publish test lifecycle events (0ms)
+⚡ [4:39:34 PM] Page load: https://practice.expandtesting.com/ - 6469ms
+✅ [4:45:51 PM] Test passed: should publish test lifecycle events (0ms)
+⚡ [4:45:59 PM] Page load: https://practice.expandtesting.com/ - 6815ms
+📝 [Invalid Date] Form filled: login-form
+📡 [Invalid Date] API test: https://dog.ceo/api/breeds/list/all - Status: 200
+⚡ [4:56:58 PM] Page load: https://practice.expandtesting.com/ - 11186ms
+📝 [Invalid Date] Form filled: login-form
