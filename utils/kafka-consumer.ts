@@ -1,96 +1,110 @@
-// ============================================================
-// 📊 KAFKA CONSUMER - Real-time Test Monitor
-// ============================================================
-import { kafkaHelper } from "./kafka-helper";
+// utils/kafka-consumer.ts
+// Real-time Kafka event monitor with colored output
 
-// Suppress noisy KafkaJS timeout warnings
-process.on("warning", (warning) => {
-  if (warning.name === "TimeoutNegativeWarning") return;
-  console.warn(warning);
+import { Kafka, Consumer, EachMessagePayload } from "kafkajs";
+
+// Get Kafka broker from environment or use container name
+const KAFKA_BROKER = process.env.KAFKA_BROKER || "kafka:9093";
+
+const kafka = new Kafka({
+  clientId: "kafka-monitor",
+  brokers: [KAFKA_BROKER],
 });
 
-async function startMonitoring() {
-  console.log("🎯 Starting Kafka test monitor...\n");
+const consumer: Consumer = kafka.consumer({
+  groupId: "monitor-group",
+});
 
-  await kafkaHelper.consumeMessages(
-    "test-monitor-group",
-    ["test-events", "test-results", "test-metrics"],
-    async ({ topic, partition, message }) => {
-      if (!message.value) return;
+// ANSI color codes
+const colors = {
+  reset: "\x1b[0m",
+  bright: "\x1b[1m",
+  cyan: "\x1b[36m",
+  green: "\x1b[32m",
+  yellow: "\x1b[33m",
+  blue: "\x1b[34m",
+  magenta: "\x1b[35m",
+  red: "\x1b[31m",
+};
 
-      let event: any;
-      try {
-        event = JSON.parse(message.value.toString());
-      } catch (e) {
-        console.warn(
-          `⚠️ Skipping invalid message on ${topic}:`,
-          message.value.toString(),
-        );
-        return;
-      }
-
-      switch (topic) {
-        case "test-events":
-          handleTestEvent(event);
-          break;
-        case "test-results":
-          handleTestResult(event);
-          break;
-        case "test-metrics":
-          handleMetric(event);
-          break;
-      }
-    },
-  );
+function colorize(text: string, color: keyof typeof colors): string {
+  return `${colors[color]}${text}${colors.reset}`;
 }
 
-function handleTestEvent(event: any) {
-  const timestamp = new Date(event.timestamp).toLocaleTimeString();
-
-  if (event.type === "TEST_START") {
-    console.log(`🧪 [${timestamp}] Test started: ${event.testName}`);
-  } else if (event.type === "USER_ACTION") {
+async function monitorKafka() {
+  try {
     console.log(
-      `👆 [${timestamp}] User action: ${event.action} on ${event.element}`,
+      colorize(`\n🔍 Connecting to Kafka at ${KAFKA_BROKER}...`, "cyan"),
     );
-  } else if (event.type === "FORM_FILLED") {
-    console.log(`📝 [${timestamp}] Form filled: ${event.form}`);
+
+    await consumer.connect();
+    console.log(colorize("✅ Connected to Kafka\n", "green"));
+
+    // Subscribe to all test-related topics
+    const topics = [
+      "test-events",
+      "test-results",
+      "test-metrics",
+      "jenkins-events",
+      "build-events",
+      "deployment-events",
+    ];
+
+    for (const topic of topics) {
+      await consumer.subscribe({ topic, fromBeginning: false });
+      console.log(colorize(`📡 Subscribed to ${topic}`, "blue"));
+    }
+
+    console.log(colorize("\n🎧 Listening for events...\n", "yellow"));
+
+    await consumer.run({
+      eachMessage: async ({
+        topic,
+        partition,
+        message,
+      }: EachMessagePayload) => {
+        const value = message.value?.toString();
+        if (!value) return;
+
+        try {
+          const event = JSON.parse(value);
+          const timestamp = new Date().toISOString();
+
+          // Color-code by topic
+          let topicColor: keyof typeof colors = "cyan";
+          if (topic.includes("jenkins")) topicColor = "magenta";
+          else if (topic.includes("test")) topicColor = "green";
+          else if (topic.includes("build")) topicColor = "yellow";
+          else if (topic.includes("deployment")) topicColor = "blue";
+
+          console.log(
+            colorize(`[${timestamp}]`, "bright"),
+            colorize(`[${topic}]`, topicColor),
+            colorize(`[partition ${partition}]`, "cyan"),
+          );
+
+          // Pretty print the event
+          console.log(JSON.stringify(event, null, 2));
+          console.log(colorize("─".repeat(80), "cyan"));
+        } catch (error) {
+          console.error(
+            colorize(`❌ Failed to parse message: ${error}`, "red"),
+          );
+        }
+      },
+    });
+  } catch (error) {
+    console.error(colorize(`\n❌ Kafka monitor error: ${error}\n`, "red"));
+    process.exit(1);
   }
 }
 
-function handleTestResult(event: any) {
-  const timestamp = new Date(event.timestamp).toLocaleTimeString();
-  const emoji = event.result === "passed" ? "✅" : "❌";
-
-  if (event.type === "TEST_END") {
-    console.log(
-      `${emoji} [${timestamp}] Test ${event.result}: ${event.testName} (${event.duration}ms)`,
-    );
-  } else if (event.type === "API_TEST") {
-    console.log(
-      `📡 [${timestamp}] API test: ${event.endpoint} - Status: ${event.status}`,
-    );
-  }
-}
-
-function handleMetric(event: any) {
-  const timestamp = new Date(event.timestamp).toLocaleTimeString();
-
-  if (event.type === "PAGE_LOAD") {
-    console.log(
-      `⚡ [${timestamp}] Page load: ${event.url} - ${event.duration}ms`,
-    );
-  }
-}
-
-// Start monitoring, then block forever
-startMonitoring()
-  .then(() => new Promise(() => {}))
-  .catch(console.error);
-
-// Graceful shutdown
+// Handle graceful shutdown
 process.on("SIGINT", async () => {
-  console.log("\n\n🛑 Shutting down monitor...");
-  await kafkaHelper.disconnect();
+  console.log(colorize("\n\n🛑 Shutting down Kafka monitor...", "yellow"));
+  await consumer.disconnect();
+  console.log(colorize("✅ Disconnected from Kafka\n", "green"));
   process.exit(0);
 });
+
+monitorKafka();
