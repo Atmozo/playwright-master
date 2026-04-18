@@ -19,7 +19,7 @@ import { defineConfig, devices } from "@playwright/test";
 import dotenv from "dotenv";
 
 dotenv.config();
-
+process.env.KAFKA_BROKER = process.env.KAFKA_BROKER || "kafka:9093";
 export default defineConfig({
   // ── WHERE ARE YOUR TESTS? ─────────────────────────────────
   // Playwright scans this folder recursively for *.spec.ts
